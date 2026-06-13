@@ -2,11 +2,18 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
+import passport from 'passport';
+import configurePassport from './config/passport.js';
+import authRoutes from './routes/auth.routes.js';
+import { errorHandler, notFound } from './middleware/error.middleware.js';
 
 const app = express();
 const clientOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map((origin) => origin.trim()).filter(Boolean)
   : null;
+
+configurePassport();
 
 app.use(helmet());
 app.use(
@@ -15,8 +22,10 @@ app.use(
     credentials: true,
   })
 );
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -32,8 +41,9 @@ app.get('/health', (_req, res) => {
   });
 });
 
-app.use((_req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
+app.use('/api/auth', authRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;
