@@ -1,11 +1,13 @@
 import passport from 'passport';
 import {
+  createUserWithRole,
   loginWithPassword,
   refreshUserTokens,
   registerLandlord,
   sanitizeUser,
   signTokens,
 } from '../services/auth.service.js';
+import { buildProfile, validateToken, consumeToken } from '../services/inviteToken.service.js';
 
 const isGoogleOAuthConfigured = Boolean(
   process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL
@@ -133,6 +135,36 @@ const googleCallback = async (req, res, next) => {
   }
 };
 
+const registerWithInvite = async (req, res, next) => {
+  try {
+    const { token } = req.query;
+    const { name, password, phone } = req.body;
+
+    const invite = await validateToken(token);
+
+    const user = await createUserWithRole({
+      name,
+      email: invite.email,
+      password,
+      phone,
+      role: invite.role,
+      profile: buildProfile(invite.role, invite.meta),
+    });
+
+    await consumeToken(invite._id);
+
+    const tokens = signTokens(user);
+    setAuthCookies(res, tokens);
+
+    return res.status(201).json({
+      message: `${invite.role} registered successfully`,
+      user: sanitizeUser(user),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const loginFailed = (_req, res) => {
   return res.status(401).json({ message: 'Google authentication failed' });
 };
@@ -144,8 +176,9 @@ export {
   login,
   loginFailed,
   refresh,
+  register,
+  registerWithInvite,
   logout,
   me,
-  register,
   setAuthCookies,
 };
