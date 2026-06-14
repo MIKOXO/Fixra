@@ -73,6 +73,26 @@ const registerLandlord = async ({ name, email, password, phone, profile = {} }) 
   return user;
 };
 
+const createUserWithRole = async ({ name, email, password, phone, role, profile }) => {
+  const existingUser = await User.findOne({ email: email.toLowerCase() });
+
+  if (existingUser) {
+    throw new AppError('A user with this email already exists', 409, 'EMAIL_EXISTS');
+  }
+
+  const passwordHash = await hashPassword(password);
+  const user = await User.create({
+    name,
+    email,
+    passwordHash,
+    phone,
+    role,
+    profile,
+  });
+
+  return user;
+};
+
 const loginWithPassword = async ({ email, password }) => {
   const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
 
@@ -143,6 +163,7 @@ const refreshUserTokens = async (refreshToken) => {
 
 export {
   comparePassword,
+  createUserWithRole,
   findOrCreateGoogleUser,
   hashPassword,
   loginWithPassword,
