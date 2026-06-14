@@ -7,6 +7,7 @@ import passport from 'passport';
 import configurePassport from './config/passport.js';
 import authRoutes from './routes/auth.routes.js';
 import inviteRoutes from './routes/invite.routes.js';
+import userRoutes from './routes/user.routes.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
 
 const app = express();
@@ -44,6 +45,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/invites', inviteRoutes);
+app.use('/api/users', userRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
