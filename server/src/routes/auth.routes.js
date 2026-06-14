@@ -11,8 +11,10 @@ import {
   logout,
   me,
   register,
+  registerWithInvite,
 } from '../controllers/auth.controller.js';
 import { loginSchema, registerSchema } from '../validators/auth.validators.js';
+import { registerWithInviteSchema } from '../validators/invite.validators.js';
 
 const router = Router();
 const isGoogleOAuthConfigured = Boolean(
@@ -31,6 +33,11 @@ const googleCallbackAuth = (req, res, next) => {
 };
 
 router.post('/register', validateRequest({ body: registerSchema }), register);
+router.post(
+  '/register/invite',
+  validateRequest({ body: registerWithInviteSchema }),
+  registerWithInvite
+);
 router.post('/login', validateRequest({ body: loginSchema }), login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
