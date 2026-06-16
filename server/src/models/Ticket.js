@@ -6,6 +6,7 @@ const attachmentSchema = new Schema(
   {
     url: { type: String, required: true },
     type: { type: String, required: true },
+    publicId: { type: String, default: null },
     uploadedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     uploadedAt: { type: Date, default: Date.now },
   },
