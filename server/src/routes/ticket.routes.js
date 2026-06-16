@@ -8,12 +8,14 @@ import {
   getById,
   list,
   transition,
+  uploadAttachment,
 } from '../controllers/ticket.controller.js';
 import {
   addNoteSchema,
   createTicketSchema,
   transitionStatusSchema,
 } from '../validators/ticket.validators.js';
+import upload from '../middleware/upload.middleware.js';
 
 const router = Router();
 
@@ -28,5 +30,6 @@ router.patch(
   transition
 );
 router.post('/:id/notes', authMiddleware, validateRequest({ body: addNoteSchema }), createNote);
+router.post('/:id/attachments', authMiddleware, upload.single('file'), uploadAttachment);
 
 export default router;

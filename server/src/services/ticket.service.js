@@ -159,4 +159,13 @@ const getTickets = async (user) => {
   return tickets;
 };
 
-export { addNote, createTicket, getTicketById, getTickets, transitionStatus };
+const addAttachment = async (ticketId, user, attachment) => {
+  const ticket = await getTicketById(ticketId, user);
+
+  ticket.attachments.push(attachment);
+  await ticket.save();
+
+  return ticket;
+};
+
+export { addAttachment, addNote, createTicket, getTicketById, getTickets, transitionStatus };

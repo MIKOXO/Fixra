@@ -1,10 +1,12 @@
 import {
+  addAttachment,
   addNote,
   createTicket,
   getTicketById,
   getTickets,
   transitionStatus,
 } from '../services/ticket.service.js';
+import { uploadToCloudinary } from '../services/upload.service.js';
 
 const create = async (req, res, next) => {
   try {
@@ -60,6 +62,31 @@ const transition = async (req, res, next) => {
   }
 };
 
+const uploadAttachment = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file provided' });
+    }
+
+    const result = await uploadToCloudinary(req.file, `fixra/tickets/${req.params.id}`);
+
+    const ticket = await addAttachment(req.params.id, req.user, {
+      url: result.url,
+      type: result.type,
+      publicId: result.publicId,
+      uploadedBy: req.user.id,
+    });
+
+    return res.status(201).json({
+      message: 'Attachment uploaded successfully',
+      attachment: { url: result.url, type: result.type },
+      ticket,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const createNote = async (req, res, next) => {
   try {
     const ticket = await addNote(req.params.id, req.user.id, req.body.text);
@@ -73,4 +100,4 @@ const createNote = async (req, res, next) => {
   }
 };
 
-export { create, createNote, getById, list, transition };
+export { create, createNote, getById, list, transition, uploadAttachment };
