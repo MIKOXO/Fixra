@@ -80,6 +80,8 @@ const initSocket = (server) => {
   io.on('connection', (socket) => {
     console.log(`Socket connected: ${socket.id} (${socket.user.role})`);
 
+    socket.join(`user:${socket.user.id}`);
+
     socket.on('join:ticket', async ({ ticketId }, callback) => {
       if (!ticketId) {
         if (callback) callback({ error: 'Ticket ID is required' });
