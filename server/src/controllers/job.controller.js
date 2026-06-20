@@ -2,6 +2,7 @@ import {
   approveEstimate,
   createEstimate,
   dispatchTechnician,
+  getJobById,
   getJobByTicket,
   rejectEstimate,
 } from '../services/job.service.js';
@@ -71,4 +72,16 @@ const getByTicket = async (req, res, next) => {
   }
 };
 
-export { approve, create, dispatch, getByTicket, reject };
+const getReceipt = async (req, res, next) => {
+  try {
+    const job = await getJobById(req.params.id, req.user);
+
+    return res.status(200).json({
+      receiptUrl: job.receiptUrl,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export { approve, create, dispatch, getByTicket, getReceipt, reject };
