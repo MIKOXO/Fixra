@@ -6,4 +6,8 @@ const updateProfileSchema = z.object({
   profile: z.record(z.unknown()).optional(),
 });
 
-export { updateProfileSchema };
+const fcmTokenSchema = z.object({
+  fcmToken: z.string().min(1),
+});
+
+export { updateProfileSchema, fcmTokenSchema };
