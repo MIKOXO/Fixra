@@ -32,7 +32,7 @@ const jobSchema = new Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['UNPAID', 'MOCK_PAID'],
+      enum: ['UNPAID', 'PAID'],
       default: 'UNPAID',
     },
     receiptUrl: {
