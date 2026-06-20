@@ -2,6 +2,7 @@ import Job from '../models/Job.js';
 import Ticket from '../models/Ticket.js';
 import User from '../models/User.js';
 import { addNote, transitionStatus } from './ticket.service.js';
+import { processPayment } from './payment.service.js';
 import { AppError } from '../middleware/error.middleware.js';
 
 const createEstimate = async (contractorId, ticketId, estimatedCost) => {
@@ -54,6 +55,8 @@ const approveEstimate = async (jobId, landlordId) => {
   await job.save();
 
   await transitionStatus(ticket._id.toString(), landlordId, 'LANDLORD', 'IN_PROGRESS', 'Estimate approved');
+
+  await processPayment(job._id.toString());
 
   return job;
 };
@@ -131,4 +134,27 @@ const getJobByTicket = async (ticketId) => {
   return job;
 };
 
-export { approveEstimate, createEstimate, dispatchTechnician, getJobByTicket, rejectEstimate };
+const getJobById = async (jobId, user) => {
+  const job = await Job.findById(jobId).populate('ticketId', 'landlordId tenantId');
+
+  if (!job) {
+    throw new AppError('Job not found', 404, 'JOB_NOT_FOUND');
+  }
+
+  const ticket = job.ticketId;
+
+  const isAuthorized =
+    user.role === 'SUPER_ADMIN' ||
+    (user.role === 'LANDLORD' && ticket.landlordId?.toString() === user.id) ||
+    (user.role === 'CONTRACTOR' && job.contractorId?.toString() === user.id) ||
+    (user.role === 'TENANT' && ticket.tenantId?.toString() === user.id) ||
+    (user.role === 'TECHNICIAN' && job.technicianId?.toString() === user.id);
+
+  if (!isAuthorized) {
+    throw new AppError('Job not found', 404, 'JOB_NOT_FOUND');
+  }
+
+  return job;
+};
+
+export { approveEstimate, createEstimate, dispatchTechnician, getJobById, getJobByTicket, rejectEstimate };
