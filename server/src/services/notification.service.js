@@ -1,20 +1,16 @@
 import Notification from '../models/Notification.js';
 import { io } from '../sockets/index.js';
 import { AppError } from '../middleware/error.middleware.js';
+import { enqueueNotification } from '../queues/notification.queue.js';
 
-const createNotification = async (recipientId, ticketId, type, message) => {
-  const notification = await Notification.create({
-    recipientId,
-    ticketId,
-    type,
-    message,
-    channels: ['IN_APP'],
-    deliveryStatus: 'SENT',
-  });
+const createNotification = async (recipientId, ticketId, type, message, channels = ['IN_APP']) => {
+  const notification = await Notification.create({ recipientId, ticketId, type, message, channels });
 
-  if (io) {
+  if (io && channels.includes('IN_APP')) {
     io.to(`user:${recipientId}`).emit('notification:new', notification);
   }
+
+  await enqueueNotification(notification._id, channels);
 
   return notification;
 };

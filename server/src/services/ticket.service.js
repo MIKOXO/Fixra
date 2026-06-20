@@ -5,6 +5,7 @@ import { io } from '../sockets/index.js';
 import { emitTicketUpdate } from '../sockets/ticketRoom.js';
 import { emitPropertyUpdate } from '../sockets/propertyRoom.js';
 import { createNotification } from './notification.service.js';
+import { scheduleAutoClose, removeAutoClose } from '../queues/escalation.queue.js';
 
 const TRANSITIONS = {
   REPORTED: { TRIAGED: ['LANDLORD'] },
@@ -124,6 +125,12 @@ const transitionStatus = async (ticketId, actorId, role, toStatus, reason, extra
   }
 
   await ticket.save();
+
+  if (toStatus === 'RESOLVED') {
+    scheduleAutoClose(ticketId, 3 * 24 * 60 * 60 * 1000);
+  } else if (toStatus === 'ASSIGNED' && fromStatus === 'PENDING_REVIEW') {
+    removeAutoClose(ticketId);
+  }
 
   if (io) {
     const lastEntry = ticket.auditTrail[ticket.auditTrail.length - 1];
