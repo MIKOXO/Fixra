@@ -3,6 +3,7 @@ import Ticket from '../models/Ticket.js';
 import User from '../models/User.js';
 import { addNote, transitionStatus } from './ticket.service.js';
 import { processPayment } from './payment.service.js';
+import { createNotification } from './notification.service.js';
 import { AppError } from '../middleware/error.middleware.js';
 
 const createEstimate = async (contractorId, ticketId, estimatedCost) => {
@@ -29,6 +30,8 @@ const createEstimate = async (contractorId, ticketId, estimatedCost) => {
 
   ticket.jobId = job._id;
   await ticket.save();
+
+  await createNotification(ticket.landlordId, ticketId, 'ESTIMATE_SUBMITTED', `An estimate of $${estimatedCost} has been submitted for "${ticket.title}"`);
 
   return job;
 };
@@ -58,6 +61,8 @@ const approveEstimate = async (jobId, landlordId) => {
 
   await processPayment(job._id.toString());
 
+  await createNotification(job.contractorId, ticket._id, 'ESTIMATE_APPROVED', `Your estimate of $${job.estimatedCost} for "${ticket.title}" has been approved`);
+
   return job;
 };
 
@@ -82,6 +87,8 @@ const rejectEstimate = async (jobId, landlordId, reason) => {
   await job.save();
 
   await addNote(ticket._id.toString(), landlordId, `Estimate rejected: ${reason}`);
+
+  await createNotification(job.contractorId, ticket._id, 'ESTIMATE_REJECTED', `Your estimate for "${ticket.title}" has been rejected: ${reason}`);
 
   return job;
 };

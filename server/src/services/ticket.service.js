@@ -4,6 +4,7 @@ import { AppError } from '../middleware/error.middleware.js';
 import { io } from '../sockets/index.js';
 import { emitTicketUpdate } from '../sockets/ticketRoom.js';
 import { emitPropertyUpdate } from '../sockets/propertyRoom.js';
+import { createNotification } from './notification.service.js';
 
 const TRANSITIONS = {
   REPORTED: { TRIAGED: ['LANDLORD'] },
@@ -133,7 +134,52 @@ const transitionStatus = async (ticketId, actorId, role, toStatus, reason, extra
     }
   }
 
+  const notificationRecipients = getTransitionNotifications(ticket, fromStatus, toStatus, extra);
+  for (const n of notificationRecipients) {
+    if (n.recipientId) {
+      await createNotification(n.recipientId, ticket._id, n.type, n.message);
+    }
+  }
+
   return ticket;
+};
+
+const getTransitionNotifications = (ticket, fromStatus, toStatus, extra = {}) => {
+  const base = { ticketId: ticket._id };
+  const title = ticket.title || 'Ticket';
+
+  if (toStatus === 'ASSIGNED' && fromStatus === 'PENDING_REVIEW') {
+    return [
+      { ...base, recipientId: ticket.landlordId, type: 'TICKET_REOPENED', message: `"${title}" has been reopened for revision` },
+      { ...base, recipientId: ticket.contractorId, type: 'TICKET_REOPENED', message: `"${title}" has been reopened for revision` },
+    ];
+  }
+
+  switch (toStatus) {
+    case 'TRIAGED':
+      return [{ ...base, recipientId: ticket.tenantId, type: 'TICKET_TRIAGED', message: `Your ticket "${title}" has been triaged` }];
+    case 'ASSIGNED':
+      return [
+        { ...base, recipientId: ticket.tenantId, type: 'TICKET_ASSIGNED', message: `A contractor has been assigned to "${title}"` },
+        { ...base, recipientId: extra.contractorId || ticket.contractorId, type: 'TICKET_ASSIGNED', message: `You have been assigned to "${title}"` },
+      ];
+    case 'IN_PROGRESS':
+      return [
+        { ...base, recipientId: ticket.tenantId, type: 'TICKET_IN_PROGRESS', message: `Work has started on "${title}"` },
+        { ...base, recipientId: ticket.landlordId, type: 'TICKET_IN_PROGRESS', message: `Work has started on "${title}"` },
+      ];
+    case 'PENDING_REVIEW':
+      return [
+        { ...base, recipientId: ticket.tenantId, type: 'TICKET_PENDING_REVIEW', message: `"${title}" is complete, please review` },
+        { ...base, recipientId: ticket.landlordId, type: 'TICKET_PENDING_REVIEW', message: `"${title}" is complete, awaiting tenant review` },
+      ];
+    case 'RESOLVED':
+      return [{ ...base, recipientId: ticket.landlordId, type: 'TICKET_RESOLVED', message: `"${title}" has been resolved` }];
+    case 'CLOSED':
+      return [{ ...base, recipientId: ticket.tenantId, type: 'TICKET_CLOSED', message: `"${title}" has been closed` }];
+    default:
+      return [];
+  }
 };
 
 const addNote = async (ticketId, actorId, text) => {
