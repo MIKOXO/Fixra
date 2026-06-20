@@ -1,3 +1,4 @@
+import User from '../models/User.js';
 import { getProfile, updateProfile } from '../services/user.service.js';
 import { sanitizeUser } from '../services/auth.service.js';
 
@@ -24,4 +25,21 @@ const updateProfileHandler = async (req, res, next) => {
   }
 };
 
-export { getProfileHandler, updateProfileHandler };
+const updateFcmTokenHandler = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { fcmToken: req.body.fcmToken },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      message: 'FCM token updated successfully',
+      fcmToken: user.fcmToken,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export { getProfileHandler, updateProfileHandler, updateFcmTokenHandler };
