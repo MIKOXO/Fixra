@@ -40,6 +40,10 @@ const userSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    fcmToken: {
+      type: String,
+      default: null,
+    },
     profile: {
       type: Schema.Types.Mixed,
       default: {},
