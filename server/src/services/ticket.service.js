@@ -1,6 +1,9 @@
 import Ticket from '../models/Ticket.js';
 import User from '../models/User.js';
 import { AppError } from '../middleware/error.middleware.js';
+import { io } from '../sockets/index.js';
+import { emitTicketUpdate } from '../sockets/ticketRoom.js';
+import { emitPropertyUpdate } from '../sockets/propertyRoom.js';
 
 const TRANSITIONS = {
   REPORTED: { TRIAGED: ['LANDLORD'] },
@@ -120,6 +123,15 @@ const transitionStatus = async (ticketId, actorId, role, toStatus, reason, extra
   }
 
   await ticket.save();
+
+  if (io) {
+    const lastEntry = ticket.auditTrail[ticket.auditTrail.length - 1];
+    const update = { id: ticket._id, status: ticket.status, auditEntry: lastEntry };
+    emitTicketUpdate(io, ticketId, update);
+    if (ticket.propertyId) {
+      emitPropertyUpdate(io, ticket.propertyId.toString(), { ticketId: ticket._id, status: ticket.status });
+    }
+  }
 
   return ticket;
 };
