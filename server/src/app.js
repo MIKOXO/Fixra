@@ -7,6 +7,7 @@ import passport from 'passport';
 import configurePassport from './config/passport.js';
 import authRoutes from './routes/auth.routes.js';
 import inviteRoutes from './routes/invite.routes.js';
+import jobRoutes from './routes/job.routes.js';
 import propertyRoutes from './routes/property.routes.js';
 import ticketRoutes from './routes/ticket.routes.js';
 import userRoutes from './routes/user.routes.js';
@@ -47,6 +48,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/invites', inviteRoutes);
+app.use('/api/jobs', jobRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/users', userRoutes);
