@@ -7,12 +7,14 @@ import {
   createNote,
   getById,
   list,
+  rejectResolutionHandler,
   transition,
   uploadAttachment,
 } from '../controllers/ticket.controller.js';
 import {
   addNoteSchema,
   createTicketSchema,
+  rejectResolutionSchema,
   transitionStatusSchema,
 } from '../validators/ticket.validators.js';
 import upload from '../middleware/upload.middleware.js';
@@ -28,6 +30,13 @@ router.patch(
   requireRole('LANDLORD', 'CONTRACTOR', 'TECHNICIAN', 'TENANT', 'SUPER_ADMIN'),
   validateRequest({ body: transitionStatusSchema }),
   transition
+);
+router.patch(
+  '/:id/reject-resolution',
+  authMiddleware,
+  requireRole('TENANT'),
+  validateRequest({ body: rejectResolutionSchema }),
+  rejectResolutionHandler
 );
 router.post('/:id/notes', authMiddleware, validateRequest({ body: addNoteSchema }), createNote);
 router.post('/:id/attachments', authMiddleware, upload.single('file'), uploadAttachment);
