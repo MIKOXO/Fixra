@@ -7,7 +7,10 @@ import {
   sanitizeUser,
   signTokens,
 } from '../services/auth.service.js';
-import { buildProfile, validateToken, consumeToken } from '../services/inviteToken.service.js';
+import { activateLink } from '../services/contractorLink.service.js';
+import {
+  buildProfile, validateToken, consumeToken
+} from '../services/inviteToken.service.js';
 
 const isGoogleOAuthConfigured = Boolean(
   process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL
@@ -153,8 +156,11 @@ const registerWithInvite = async (req, res, next) => {
 
     await consumeToken(invite._id);
 
+    if (invite.role === 'CONTRACTOR' && invite.meta?.landlordId) {
+      await activateLink(user._id, invite.meta.landlordId);
+    }
+
     const tokens = signTokens(user);
-    setAuthCookies(res, tokens);
 
     return res.status(201).json({
       message: `${invite.role} registered successfully`,
