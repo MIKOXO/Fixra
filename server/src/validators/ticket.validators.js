@@ -23,4 +23,8 @@ const addNoteSchema = z.object({
   text: z.string().trim().min(1).max(1000),
 });
 
-export { addNoteSchema, createTicketSchema, transitionStatusSchema };
+const rejectResolutionSchema = z.object({
+  reason: z.string().trim().min(1).max(1000),
+});
+
+export { addNoteSchema, createTicketSchema, rejectResolutionSchema, transitionStatusSchema };
