@@ -240,4 +240,75 @@ const addAttachment = async (ticketId, user, attachment) => {
   return ticket;
 };
 
-export { addAttachment, addNote, createTicket, getTicketById, getTickets, transitionStatus };
+const rejectResolution = async (ticketId, tenantId, reason) => {
+  const ticket = await Ticket.findById(ticketId);
+
+  if (!ticket) {
+    throw new AppError('Ticket not found', 404, 'TICKET_NOT_FOUND');
+  }
+
+  if (ticket.status !== 'PENDING_REVIEW') {
+    throw new AppError('Ticket must be in PENDING_REVIEW to reject resolution', 400, 'INVALID_TICKET_STATUS');
+  }
+
+  if (ticket.tenantId.toString() !== tenantId) {
+    throw new AppError('You are not the tenant for this ticket', 403, 'FORBIDDEN');
+  }
+
+  if (!reason || !reason.trim()) {
+    throw new AppError('Reason is required when rejecting a resolution', 400, 'REASON_REQUIRED');
+  }
+
+  const trimmedReason = reason.trim();
+  const fromStatus = ticket.status;
+
+  ticket.rejectionHistory.push({
+    reason: trimmedReason,
+    rejectedBy: tenantId,
+    rejectedAt: new Date(),
+  });
+
+  ticket.reopenCount += 1;
+  ticket.status = 'ASSIGNED';
+  ticket.autoCloseAt = null;
+
+  ticket.auditTrail.push({
+    fromStatus,
+    toStatus: 'ASSIGNED',
+    actorId: tenantId,
+    reason: `Resolution rejected: ${trimmedReason}`,
+    timestamp: new Date(),
+  });
+
+  await ticket.save();
+
+  removeAutoClose(ticketId);
+
+  if (io) {
+    const lastEntry = ticket.auditTrail[ticket.auditTrail.length - 1];
+    const update = { id: ticket._id, status: ticket.status, auditEntry: lastEntry };
+    emitTicketUpdate(io, ticketId, update);
+    if (ticket.propertyId) {
+      emitPropertyUpdate(io, ticket.propertyId.toString(), { ticketId: ticket._id, status: ticket.status });
+    }
+  }
+
+  const title = ticket.title || 'Ticket';
+  const recipients = [
+    { recipientId: ticket.landlordId, type: 'TICKET_REOPENED', message: `"${title}" has been reopened for revision — ${trimmedReason}` },
+    { recipientId: ticket.contractorId, type: 'TICKET_REOPENED', message: `"${title}" has been reopened for revision — ${trimmedReason}` },
+  ];
+  if (ticket.technicianId) {
+    recipients.push({ recipientId: ticket.technicianId, type: 'TICKET_REOPENED', message: `"${title}" has been reopened for revision — ${trimmedReason}` });
+  }
+
+  for (const n of recipients) {
+    if (n.recipientId) {
+      await createNotification(n.recipientId, ticket._id, n.type, n.message);
+    }
+  }
+
+  return ticket;
+};
+
+export { addAttachment, addNote, createTicket, getTicketById, getTickets, rejectResolution, transitionStatus };
