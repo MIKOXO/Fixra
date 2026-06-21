@@ -13,8 +13,12 @@ const authMiddleware = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.sub);
 
-    if (!user || !user.isActive) {
+    if (!user) {
       throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+    }
+
+    if (!user.isActive) {
+      throw new AppError('Account deactivated', 403, 'ACCOUNT_DEACTIVATED');
     }
 
     req.user = {
