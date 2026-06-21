@@ -24,6 +24,15 @@ const auditEntrySchema = new Schema(
   { _id: false }
 );
 
+const rejectionEntrySchema = new Schema(
+  {
+    reason: { type: String, required: true },
+    rejectedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    rejectedAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const noteSchema = new Schema(
   {
     text: { type: String, required: true },
@@ -101,6 +110,11 @@ const ticketSchema = new Schema(
       type: Date,
       default: null,
     },
+    reopenCount: {
+      type: Number,
+      default: 0,
+    },
+    rejectionHistory: [rejectionEntrySchema],
   },
   {
     timestamps: { createdAt: true, updatedAt: false },
