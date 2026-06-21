@@ -8,7 +8,7 @@ let firebase = null;
 
 if (projectId && privateKey && clientEmail) {
   firebase = admin.initializeApp({
-    credential: admin.credential.cert({ projectId, privateKey, clientEmail }),
+    credential: admin.cert({ projectId, privateKey, clientEmail }),
   });
 }
 
