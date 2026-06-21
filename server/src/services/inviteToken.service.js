@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import InviteToken from '../models/InviteToken.js';
 import User from '../models/User.js';
 import { AppError } from '../middleware/error.middleware.js';
+import { createLink } from './contractorLink.service.js';
 
 const hashToken = (rawToken) =>
   crypto.createHash('sha256').update(rawToken).digest('hex');
@@ -66,6 +67,10 @@ const generateToken = async ({ role, invitedBy, email, meta = {} }) => {
     meta,
     expiresAt,
   });
+
+  if (role === 'CONTRACTOR') {
+    await createLink(invitedBy, email, meta.serviceCategories || []);
+  }
 
   return rawToken;
 };

@@ -6,6 +6,7 @@ import { emitTicketUpdate } from '../sockets/ticketRoom.js';
 import { emitPropertyUpdate } from '../sockets/propertyRoom.js';
 import { createNotification } from './notification.service.js';
 import { scheduleAutoClose, removeAutoClose } from '../queues/escalation.queue.js';
+import { isLinked } from './contractorLink.service.js';
 
 const TRANSITIONS = {
   REPORTED: { TRIAGED: ['LANDLORD'] },
@@ -106,6 +107,12 @@ const transitionStatus = async (ticketId, actorId, role, toStatus, reason, extra
     if (!extra.contractorId) {
       throw new AppError('Contractor ID is required when assigning', 400, 'CONTRACTOR_REQUIRED');
     }
+
+    const linked = await isLinked(extra.contractorId, ticket.landlordId.toString());
+    if (!linked) {
+      throw new AppError('Contractor is not linked to your properties', 403, 'CONTRACTOR_NOT_LINKED');
+    }
+
     ticket.contractorId = extra.contractorId;
   }
 
