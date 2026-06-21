@@ -13,6 +13,7 @@ import propertyRoutes from './routes/property.routes.js';
 import ticketRoutes from './routes/ticket.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import contractorLinkRoutes from './routes/contractorLink.routes.js';
+import technicianRoutes from './routes/technician.routes.js';
 import userRoutes from './routes/user.routes.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
 
@@ -57,6 +58,7 @@ app.use('/api/properties', propertyRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api', contractorLinkRoutes);
+app.use('/api', technicianRoutes);
 app.use('/api/users', userRoutes);
 
 app.use(notFound);
