@@ -100,6 +100,10 @@ const loginWithPassword = async ({ email, password }) => {
     throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
   }
 
+  if (!user.isActive) {
+    throw new AppError('Account deactivated', 403, 'ACCOUNT_DEACTIVATED');
+  }
+
   const isMatch = await comparePassword(password, user.passwordHash);
 
   if (!isMatch) {
@@ -151,8 +155,12 @@ const refreshUserTokens = async (refreshToken) => {
   const decoded = verifyRefreshToken(refreshToken);
   const user = await User.findById(decoded.sub);
 
-  if (!user || !user.isActive) {
+  if (!user) {
     throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+  }
+
+  if (!user.isActive) {
+    throw new AppError('Account deactivated', 403, 'ACCOUNT_DEACTIVATED');
   }
 
   return {
