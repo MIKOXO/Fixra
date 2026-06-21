@@ -4,6 +4,7 @@ import {
   createTicket,
   getTicketById,
   getTickets,
+  rejectResolution,
   transitionStatus,
 } from '../services/ticket.service.js';
 import { uploadToCloudinary } from '../services/upload.service.js';
@@ -62,6 +63,19 @@ const transition = async (req, res, next) => {
   }
 };
 
+const rejectResolutionHandler = async (req, res, next) => {
+  try {
+    const ticket = await rejectResolution(req.params.id, req.user.id, req.body.reason);
+
+    return res.status(200).json({
+      message: 'Resolution rejected, ticket reopened',
+      ticket,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const uploadAttachment = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -100,4 +114,4 @@ const createNote = async (req, res, next) => {
   }
 };
 
-export { create, createNote, getById, list, transition, uploadAttachment };
+export { create, createNote, getById, list, rejectResolutionHandler, transition, uploadAttachment };
