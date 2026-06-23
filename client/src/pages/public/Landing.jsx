@@ -581,63 +581,148 @@ function HowItWorks() {
    ROLES SECTION
    ═══════════════════════════════════════════════════════════════════════ */
 
+const roleColorMap = {
+  0: {
+    iconGradient: 'from-primary-500 to-primary-600',
+    iconBg: 'bg-primary-50',
+    iconBorder: 'border-primary-200',
+    iconColor: 'text-primary-500',
+    accentLine: 'bg-gradient-to-r from-primary-400 to-primary-500',
+    hoverBorder: 'hover:border-primary-300',
+    hoverShadow: 'hover:shadow-primary-500/10',
+  },
+  1: {
+    iconGradient: 'from-sage-500 to-sage-600',
+    iconBg: 'bg-sage-50',
+    iconBorder: 'border-sage-200',
+    iconColor: 'text-sage-500',
+    accentLine: 'bg-gradient-to-r from-sage-400 to-sage-500',
+    hoverBorder: 'hover:border-sage-300',
+    hoverShadow: 'hover:shadow-sage-500/10',
+  },
+  2: {
+    iconGradient: 'from-amber-500 to-amber-600',
+    iconBg: 'bg-amber-50',
+    iconBorder: 'border-amber-200',
+    iconColor: 'text-amber-500',
+    accentLine: 'bg-gradient-to-r from-amber-400 to-amber-500',
+    hoverBorder: 'hover:border-amber-300',
+    hoverShadow: 'hover:shadow-amber-500/10',
+  },
+  3: {
+    iconGradient: 'from-primary-600 to-sage-600',
+    iconBg: 'bg-primary-50',
+    iconBorder: 'border-primary-200',
+    iconColor: 'text-primary-600',
+    accentLine: 'bg-gradient-to-r from-primary-500 to-sage-500',
+    hoverBorder: 'hover:border-primary-300',
+    hoverShadow: 'hover:shadow-primary-500/10',
+  },
+};
+
 function RolesSection() {
   return (
-    <Section className="py-24 md:py-32 bg-white" id="roles">
-      <div className="mx-auto max-w-7xl px-6">
+    <Section className="relative py-24 md:py-32 bg-gradient-to-b from-white via-surface-warm to-white overflow-hidden" id="roles">
+      {/* Decorative background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-40 -left-20 w-96 h-96 rounded-full bg-primary-100/20 blur-3xl" />
+        <div className="absolute bottom-40 -right-20 w-96 h-96 rounded-full bg-sage-100/25 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-6">
         {/* Heading */}
-        <motion.div variants={fadeUp} className="text-center mb-16 md:mb-20">
-          <span className="inline-block font-heading text-xs font-semibold text-primary-500 tracking-widest uppercase mb-4">
+        <motion.div variants={fadeUp} className="text-center mb-20 md:mb-24">
+          <span className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-primary-500 tracking-widest uppercase mb-4 px-4 py-2 rounded-full bg-primary-50 border border-primary-200">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
             For Everyone
           </span>
-          <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl text-charcoal-950 tracking-tight">
+          <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl text-charcoal-950 tracking-tight mt-6">
             {ROLES.title}
           </h2>
-          <p className="mt-4 font-body text-lg text-charcoal-500 max-w-xl mx-auto">
+          <p className="mt-5 font-body text-lg text-charcoal-500 max-w-2xl mx-auto leading-relaxed">
             {ROLES.subtitle}
           </p>
         </motion.div>
 
-        {/* Cards */}
+        {/* Cards Grid */}
         <motion.div
           variants={staggerContainer}
-          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-7"
         >
-          {ROLES.cards.map((card, idx) => (
-            <motion.div
-              key={card.role}
-              variants={scaleIn}
-              whileHover={{ y: -6, transition: { duration: 0.25 } }}
-              className="group relative bg-white border border-charcoal-100 rounded-2xl p-7 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
-            >
-              {/* Icon */}
-              <div className="text-primary-500 mb-5">
-                <card.icon className="w-10 h-10" />
-              </div>
-
-              {/* Role name */}
-              <h3 className="font-heading font-bold text-lg text-charcoal-950 mb-3 group-hover:text-primary-600 transition-colors duration-200">
-                {card.role}
-              </h3>
-
-              {/* Description */}
-              <p className="font-body text-sm text-charcoal-500 leading-relaxed mb-5">
-                {card.description}
-              </p>
-
-              {/* Highlights */}
-              <div className="flex flex-wrap gap-2">
-                {card.highlights.map((tag) => (
-                  <span
-                    key={tag}
-                    className="font-heading text-xs font-medium text-sage-700 bg-sage-50 border border-sage-100 px-2.5 py-1 rounded-full"
+          {ROLES.cards.map((card, idx) => {
+            const colors = roleColorMap[idx] || roleColorMap[0];
+            const Icon = card.icon;
+            return (
+              <motion.div
+                key={card.role}
+                variants={scaleIn}
+                whileHover={{ y: -8, scale: 1.03 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className={`group relative bg-white border-2 border-charcoal-100 rounded-3xl p-7 ${colors.hoverBorder} hover:shadow-xl ${colors.hoverShadow} transition-all duration-300 overflow-hidden`}
+              >
+                {/* Icon with gradient background */}
+                <div className="relative mb-6">
+                  <motion.div
+                    whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                    transition={{ duration: 0.5 }}
+                    className={`relative w-14 h-14 rounded-2xl ${colors.iconBg} border-2 ${colors.iconBorder} flex items-center justify-center group-hover:border-transparent transition-all duration-300`}
                   >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-          ))}
+                    {/* Gradient overlay on hover */}
+                    <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${colors.iconGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                    <Icon className={`relative w-7 h-7 ${colors.iconColor} group-hover:text-white transition-colors duration-300 z-10`} />
+                  </motion.div>
+                  
+                  {/* Role number badge */}
+                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-charcoal-900 border-2 border-white flex items-center justify-center">
+                    <span className="font-heading font-bold text-xs text-white">{idx + 1}</span>
+                  </div>
+                </div>
+
+                {/* Role name */}
+                <h3 className="font-heading font-bold text-xl text-charcoal-950 mb-3 group-hover:text-charcoal-950 transition-colors duration-200">
+                  {card.role}
+                </h3>
+
+                {/* Description */}
+                <p className="font-body text-sm text-charcoal-600 leading-relaxed mb-5">
+                  {card.description}
+                </p>
+
+                {/* Highlights - Enhanced tags */}
+                <div className="flex flex-wrap gap-2">
+                  {card.highlights.map((tag, tagIdx) => (
+                    <motion.span
+                      key={tag}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: tagIdx * 0.1 }}
+                      className="font-heading text-xs font-semibold text-charcoal-700 bg-charcoal-50 border border-charcoal-200 px-3 py-1.5 rounded-full group-hover:bg-charcoal-100 group-hover:border-charcoal-300 transition-all duration-200"
+                    >
+                      {tag}
+                    </motion.span>
+                  ))}
+                </div>
+
+                {/* Decorative corner dot */}
+                <div className="absolute bottom-6 right-6 w-2 h-2 rounded-full bg-charcoal-200 group-hover:bg-charcoal-400 transition-colors duration-300" />
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        {/* Bottom subtitle */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          className="mt-16 text-center"
+        >
+          <p className="font-body text-sm text-charcoal-400">
+            <span className="font-semibold text-charcoal-600">One platform.</span> Four roles. Complete transparency.
+          </p>
         </motion.div>
       </div>
     </Section>
@@ -648,19 +733,47 @@ function RolesSection() {
    FEATURES GRID
    ═══════════════════════════════════════════════════════════════════════ */
 
+const featureColorMap = {
+  0: { accent: 'primary', gradient: 'from-primary-500 to-primary-600', bg: 'bg-primary-50', border: 'border-primary-200', iconColor: 'text-primary-600' },
+  1: { accent: 'sage', gradient: 'from-sage-500 to-sage-600', bg: 'bg-sage-50', border: 'border-sage-200', iconColor: 'text-sage-600' },
+  2: { accent: 'amber', gradient: 'from-amber-500 to-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', iconColor: 'text-amber-600' },
+  3: { accent: 'primary', gradient: 'from-primary-600 to-sage-500', bg: 'bg-primary-50', border: 'border-primary-200', iconColor: 'text-primary-600' },
+  4: { accent: 'sage', gradient: 'from-sage-600 to-amber-500', bg: 'bg-sage-50', border: 'border-sage-200', iconColor: 'text-sage-600' },
+  5: { accent: 'amber', gradient: 'from-amber-600 to-primary-500', bg: 'bg-amber-50', border: 'border-amber-200', iconColor: 'text-amber-600' },
+};
+
 function FeaturesGrid() {
   return (
-    <Section className="py-24 md:py-32 bg-surface-warm" id="features">
-      <div className="mx-auto max-w-7xl px-6">
+    <Section className="relative py-24 md:py-32 bg-white overflow-hidden" id="features">
+      {/* Decorative background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 right-1/4 w-[500px] h-[500px] rounded-full bg-primary-100/20 blur-3xl" />
+        <div className="absolute -bottom-40 left-1/4 w-[500px] h-[500px] rounded-full bg-sage-100/20 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-amber-100/10 blur-3xl" />
+      </div>
+
+      {/* Grid dot pattern overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.015]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #1a1a1f 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+
+      <div className="relative mx-auto max-w-7xl px-6">
         {/* Heading */}
-        <motion.div variants={fadeUp} className="text-center mb-16 md:mb-20">
-          <span className="inline-block font-heading text-xs font-semibold text-sage-600 tracking-widest uppercase mb-4">
+        <motion.div variants={fadeUp} className="text-center mb-20 md:mb-24">
+          <span className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-sage-600 tracking-widest uppercase mb-4 px-4 py-2 rounded-full bg-sage-50 border border-sage-200">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
             Features
           </span>
-          <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl text-charcoal-950 tracking-tight">
+          <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl text-charcoal-950 tracking-tight mt-6">
             {FEATURES.title}
           </h2>
-          <p className="mt-4 font-body text-lg text-charcoal-500 max-w-xl mx-auto">
+          <p className="mt-5 font-body text-lg text-charcoal-500 max-w-2xl mx-auto leading-relaxed">
             {FEATURES.subtitle}
           </p>
         </motion.div>
@@ -668,34 +781,75 @@ function FeaturesGrid() {
         {/* Grid */}
         <motion.div
           variants={staggerContainer}
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
         >
-          {FEATURES.items.map((feature) => {
+          {FEATURES.items.map((feature, idx) => {
             const Icon = feature.icon;
+            const colors = featureColorMap[idx] || featureColorMap[0];
             return (
               <motion.div
                 key={feature.title}
                 variants={fadeUp}
-                whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                className="group bg-white rounded-2xl border border-charcoal-100 p-7 hover:border-primary-200 hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300"
+                whileHover={{ y: -6, scale: 1.02 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="group relative"
               >
-                {/* Icon */}
-                <div className="w-12 h-12 rounded-xl bg-primary-50 border border-primary-100 flex items-center justify-center mb-5 group-hover:bg-primary-500 group-hover:border-primary-500 transition-all duration-300">
-                  <Icon className="w-6 h-6 text-primary-500 group-hover:text-white transition-colors duration-300" />
+                {/* Card with clean styling */}
+                <div className="relative bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 h-full border border-charcoal-100 hover:border-charcoal-200">
+                  {/* Icon with animated background */}
+                  <div className="relative mb-6">
+                    <motion.div
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ duration: 0.3 }}
+                      className={`relative w-14 h-14 rounded-xl ${colors.bg} flex items-center justify-center`}
+                    >
+                      {/* Animated pulse ring */}
+                      <div className={`absolute inset-0 rounded-xl ${colors.border} border-2 opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300`} />
+                      <Icon className={`relative w-7 h-7 ${colors.iconColor} transition-transform duration-300 group-hover:scale-110 z-10`} />
+                    </motion.div>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="font-heading font-bold text-xl text-charcoal-950 mb-3 group-hover:text-charcoal-950 transition-colors">
+                    {feature.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="font-body text-sm text-charcoal-600 leading-relaxed">
+                    {feature.description}
+                  </p>
+
+                  {/* Bottom left accent dot */}
+                  <div className={`absolute bottom-6 left-6 w-1.5 h-1.5 rounded-full ${colors.bg} opacity-60 group-hover:opacity-100 transition-opacity duration-300`} />
+                  
+                  {/* Hover arrow indicator */}
+                  <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                    <svg className={`w-5 h-5 ${colors.iconColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </div>
                 </div>
-
-                {/* Title */}
-                <h3 className="font-heading font-bold text-lg text-charcoal-950 mb-2">
-                  {feature.title}
-                </h3>
-
-                {/* Description */}
-                <p className="font-body text-sm text-charcoal-500 leading-relaxed">
-                  {feature.description}
-                </p>
               </motion.div>
             );
           })}
+        </motion.div>
+
+        {/* Bottom feature highlight */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          className="mt-20 text-center"
+        >
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-primary-50 via-sage-50 to-amber-50 border border-charcoal-100">
+            <svg className="w-5 h-5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-heading text-sm font-semibold text-charcoal-700">
+              All features included in every plan
+            </span>
+          </div>
         </motion.div>
       </div>
     </Section>
