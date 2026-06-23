@@ -335,67 +335,75 @@ function ProblemSection() {
           {/* Old way */}
           <motion.div
             variants={slideInLeft}
-            className="relative rounded-2xl border border-charcoal-200 bg-charcoal-50/50 p-8 md:p-10"
+            className="relative rounded-2xl border-2 border-charcoal-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden"
           >
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r from-charcoal-300 to-charcoal-200" />
-            <div className="flex items-center gap-3 mb-6">
-              <HiOutlineXCircle className="w-8 h-8 text-charcoal-500" />
-              <h3 className="font-heading font-bold text-xl text-charcoal-800">
-                {PROBLEM.oldWay.label}
-              </h3>
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-charcoal-400 via-charcoal-300 to-charcoal-200" />
+            <div className="p-8 md:p-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-charcoal-100 flex items-center justify-center">
+                  <HiOutlineXCircle className="w-6 h-6 text-charcoal-600" />
+                </div>
+                <h3 className="font-heading font-bold text-xl text-charcoal-900">
+                  {PROBLEM.oldWay.label}
+                </h3>
+              </div>
+              <ul className="space-y-4">
+                {PROBLEM.oldWay.items.map((item, i) => (
+                  <motion.li
+                    key={i}
+                    variants={fadeUp}
+                    custom={i}
+                    className="flex items-start gap-3"
+                  >
+                    <span className="mt-1 w-5 h-5 rounded-full bg-charcoal-200 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-charcoal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </span>
+                    <span className="font-body text-charcoal-700 leading-relaxed">
+                      {item}
+                    </span>
+                  </motion.li>
+                ))}
+              </ul>
             </div>
-            <ul className="space-y-3.5">
-              {PROBLEM.oldWay.items.map((item, i) => (
-                <motion.li
-                  key={i}
-                  variants={fadeUp}
-                  custom={i}
-                  className="flex items-start gap-3"
-                >
-                  <span className="mt-1.5 w-5 h-5 rounded-full bg-charcoal-200 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-3 h-3 text-charcoal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </span>
-                  <span className="font-body text-charcoal-600 leading-relaxed">
-                    {item}
-                  </span>
-                </motion.li>
-              ))}
-            </ul>
           </motion.div>
 
           {/* New way */}
           <motion.div
             variants={slideInRight}
-            className="relative rounded-2xl border border-sage-200 bg-sage-50/40 p-8 md:p-10"
+            className="relative rounded-2xl border-2 border-sage-300 bg-white shadow-sm hover:shadow-lg hover:shadow-sage-500/10 transition-all duration-300 overflow-hidden"
           >
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r from-sage-400 to-sage-300" />
-            <div className="flex items-center gap-3 mb-6">
-              <HiOutlineCheckCircle className="w-8 h-8 text-sage-600" />
-              <h3 className="font-heading font-bold text-xl text-sage-800">
-                {PROBLEM.newWay.label}
-              </h3>
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-sage-500 via-sage-400 to-sage-300" />
+            <div className="p-8 md:p-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-sage-100 flex items-center justify-center">
+                  <HiOutlineCheckCircle className="w-6 h-6 text-sage-600" />
+                </div>
+                <h3 className="font-heading font-bold text-xl text-sage-900">
+                  {PROBLEM.newWay.label}
+                </h3>
+              </div>
+              <ul className="space-y-4">
+                {PROBLEM.newWay.items.map((item, i) => (
+                  <motion.li
+                    key={i}
+                    variants={fadeUp}
+                    custom={i}
+                    className="flex items-start gap-3"
+                  >
+                    <span className="mt-1 w-5 h-5 rounded-full bg-sage-200 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-sage-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    <span className="font-body text-charcoal-700 leading-relaxed font-medium">
+                      {item}
+                    </span>
+                  </motion.li>
+                ))}
+              </ul>
             </div>
-            <ul className="space-y-3.5">
-              {PROBLEM.newWay.items.map((item, i) => (
-                <motion.li
-                  key={i}
-                  variants={fadeUp}
-                  custom={i}
-                  className="flex items-start gap-3"
-                >
-                  <span className="mt-1.5 w-5 h-5 rounded-full bg-sage-200 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-3 h-3 text-sage-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </span>
-                  <span className="font-body text-charcoal-700 leading-relaxed">
-                    {item}
-                  </span>
-                </motion.li>
-              ))}
-            </ul>
           </motion.div>
         </div>
       </div>
@@ -409,53 +417,62 @@ function ProblemSection() {
 
 const stepColorMap = {
   primary: {
+    gradient: 'from-primary-500 to-primary-600',
+    glow: 'shadow-primary-500/20',
+    ring: 'ring-primary-500/10',
     bg: 'bg-primary-50',
-    border: 'border-primary-200',
-    number: 'text-primary-500',
-    line: 'bg-primary-200',
-    dot: 'bg-primary-500',
+    textAccent: 'text-primary-600',
+    iconBg: 'bg-primary-500',
   },
   sage: {
+    gradient: 'from-sage-500 to-sage-600',
+    glow: 'shadow-sage-500/20',
+    ring: 'ring-sage-500/10',
     bg: 'bg-sage-50',
-    border: 'border-sage-200',
-    number: 'text-sage-500',
-    line: 'bg-sage-200',
-    dot: 'bg-sage-500',
+    textAccent: 'text-sage-600',
+    iconBg: 'bg-sage-500',
   },
   amber: {
+    gradient: 'from-amber-500 to-amber-600',
+    glow: 'shadow-amber-500/20',
+    ring: 'ring-amber-500/10',
     bg: 'bg-amber-50',
-    border: 'border-amber-200',
-    number: 'text-amber-600',
-    line: 'bg-amber-200',
-    dot: 'bg-amber-500',
+    textAccent: 'text-amber-600',
+    iconBg: 'bg-amber-500',
   },
 };
 
 function HowItWorks() {
   return (
-    <Section className="py-24 md:py-32 bg-surface-warm" id="how-it-works">
-      <div className="mx-auto max-w-7xl px-6">
+    <Section className="relative py-24 md:py-32 bg-gradient-to-br from-surface-warm via-white to-surface-cream overflow-hidden" id="how-it-works">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-10 w-72 h-72 rounded-full bg-sage-100/30 blur-3xl" />
+        <div className="absolute bottom-20 left-10 w-96 h-96 rounded-full bg-primary-100/20 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-6">
         {/* Heading */}
-        <motion.div variants={fadeUp} className="text-center mb-16 md:mb-20">
-          <span className="inline-block font-heading text-xs font-semibold text-sage-600 tracking-widest uppercase mb-4">
+        <motion.div variants={fadeUp} className="text-center mb-20 md:mb-24">
+          <span className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-sage-600 tracking-widest uppercase mb-4 px-4 py-2 rounded-full bg-sage-50 border border-sage-200">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
             The Process
           </span>
-          <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl text-charcoal-950 tracking-tight">
+          <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl text-charcoal-950 tracking-tight mt-6">
             {HOW_IT_WORKS.title}
           </h2>
-          <p className="mt-4 font-body text-lg text-charcoal-500 max-w-xl mx-auto">
+          <p className="mt-5 font-body text-lg text-charcoal-500 max-w-2xl mx-auto leading-relaxed">
             {HOW_IT_WORKS.subtitle}
           </p>
         </motion.div>
 
-        {/* Steps */}
+        {/* Steps Grid - Modern Layout */}
         <motion.div
           variants={staggerContainer}
-          className="relative max-w-3xl mx-auto"
+          className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto"
         >
-          {/* Vertical connector line (desktop) */}
-          <div className="hidden md:block absolute left-8 top-6 bottom-6 w-px bg-gradient-to-b from-primary-200 via-sage-200 to-primary-200" />
-
           {HOW_IT_WORKS.steps.map((step, idx) => {
             const colors = stepColorMap[step.color] || stepColorMap.primary;
             return (
@@ -463,40 +480,97 @@ function HowItWorks() {
                 key={step.number}
                 variants={fadeUp}
                 custom={idx}
-                className={`relative flex items-start gap-6 md:gap-8 ${idx < HOW_IT_WORKS.steps.length - 1 ? 'mb-8 md:mb-12' : ''}`}
+                whileHover={{ y: -8, scale: 1.02 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="group relative"
               >
-                {/* Number circle */}
-                <div className="flex-shrink-0 relative z-10">
-                  <div className={`w-16 h-16 rounded-2xl ${colors.bg} border ${colors.border} flex items-center justify-center`}>
-                    <span className={`font-heading font-bold text-xl ${colors.number}`}>
-                      {step.number}
-                    </span>
+                {/* Connecting line for visual flow */}
+                {idx < HOW_IT_WORKS.steps.length - 1 && (
+                  <div className="hidden lg:block absolute top-1/2 -right-4 z-0">
+                    <svg className="w-8 h-8 text-charcoal-200 group-hover:text-charcoal-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </div>
+                )}
+
+                {/* Card */}
+                <div className="relative bg-white rounded-3xl border-2 border-charcoal-100 p-8 shadow-lg group-hover:shadow-2xl group-hover:border-charcoal-200 transition-all duration-300 overflow-hidden h-full">
+                  {/* Gradient overlay on hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-0 group-hover:opacity-[0.02] transition-opacity duration-300`} />
+                  
+                  {/* Top gradient accent */}
+                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${colors.gradient}`} />
+
+                  {/* Content */}
+                  <div className="relative">
+                    {/* Number Badge */}
+                    <div className="flex items-start justify-between mb-6">
+                      <motion.div
+                        whileHover={{ rotate: [0, -5, 5, 0] }}
+                        transition={{ duration: 0.5 }}
+                        className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center shadow-lg ${colors.glow}`}
+                      >
+                        <span className="font-heading font-extrabold text-2xl text-white">
+                          {step.number}
+                        </span>
+                        {/* Pulse ring */}
+                        <div className={`absolute inset-0 rounded-2xl ring-4 ${colors.ring} animate-pulse-soft`} />
+                      </motion.div>
+
+                      {/* Step indicator */}
+                      <div className="flex items-center gap-1.5">
+                        {HOW_IT_WORKS.steps.map((_, i) => (
+                          <div
+                            key={i}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${
+                              i === idx ? 'w-8 bg-charcoal-400' : 'w-1.5 bg-charcoal-200'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className={`font-heading font-bold text-2xl text-charcoal-950 mb-3 group-hover:${colors.textAccent} transition-colors`}>
+                      {step.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="font-body text-charcoal-600 leading-relaxed text-base">
+                      {step.description}
+                    </p>
+
+                    {/* Decorative corner element */}
+                    <div className={`absolute bottom-6 right-6 w-12 h-12 rounded-xl ${colors.bg} opacity-50 group-hover:opacity-100 transition-opacity duration-300`}>
+                      <div className={`absolute inset-2 rounded-lg border-2 border-dashed ${colors.textAccent} border-opacity-30`} />
+                    </div>
                   </div>
                 </div>
 
-                {/* Content card */}
-                <motion.div
-                  whileHover={{ x: 4 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex-1 pt-1"
-                >
-                  <h3 className="font-heading font-bold text-xl text-charcoal-900 mb-2">
-                    {step.title}
-                  </h3>
-                  <p className="font-body text-charcoal-500 leading-relaxed">
-                    {step.description}
-                  </p>
-                </motion.div>
-
-                {/* Arrow connector between steps */}
+                {/* Mobile connector arrow */}
                 {idx < HOW_IT_WORKS.steps.length - 1 && (
-                  <div className="hidden md:flex absolute left-8 -bottom-6 md:-bottom-8 w-px h-8 md:h-12 items-center justify-center">
-                    <div className={`w-2 h-2 rounded-full ${colors.dot} absolute -bottom-1`} />
+                  <div className="lg:hidden flex justify-center my-6">
+                    <svg className="w-6 h-6 text-charcoal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
                   </div>
                 )}
               </motion.div>
             );
           })}
+        </motion.div>
+
+        {/* Bottom CTA hint */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="mt-16 text-center"
+        >
+          <p className="font-body text-sm text-charcoal-400 italic">
+            Simple, transparent, and accountable — every step of the way.
+          </p>
         </motion.div>
       </div>
     </Section>
@@ -534,7 +608,7 @@ function RolesSection() {
               key={card.role}
               variants={scaleIn}
               whileHover={{ y: -6, transition: { duration: 0.25 } }}
-              className="group relative bg-white border border-charcoal-150 rounded-2xl p-7 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
+              className="group relative bg-white border border-charcoal-100 rounded-2xl p-7 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
             >
               {/* Icon */}
               <div className="text-primary-500 mb-5">
