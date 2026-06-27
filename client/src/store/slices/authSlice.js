@@ -1,0 +1,142 @@
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import {
+  fetchCurrentUser as fetchCurrentUserApi,
+  login as loginApi,
+  logout as logoutApi,
+  registerLandlord as registerLandlordApi,
+  registerWithInvite as registerWithInviteApi,
+} from '@services/auth.api';
+
+const extractErrorMessage = (error, fallback) =>
+  error?.message || error?.response?.data?.message || fallback;
+
+const normalizeUser = (payload) => payload?.user || payload;
+
+export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
+  try {
+    const response = await loginApi(credentials);
+    return normalizeUser(response);
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error, 'Unable to log in'));
+  }
+});
+
+export const registerLandlord = createAsyncThunk(
+  'auth/registerLandlord',
+  async (data, { rejectWithValue }) => {
+    try {
+      const payload = {
+        ...data,
+      };
+
+      delete payload.confirmPassword;
+
+      const response = await registerLandlordApi(payload);
+      return normalizeUser(response);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Unable to register'));
+    }
+  }
+);
+
+export const registerWithInvite = createAsyncThunk(
+  'auth/registerWithInvite',
+  async ({ token, data }, { rejectWithValue }) => {
+    try {
+      const payload = {
+        ...data,
+      };
+
+      delete payload.confirmPassword;
+
+      const response = await registerWithInviteApi(payload, token);
+      return normalizeUser(response);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Unable to complete invite registration'));
+    }
+  }
+);
+
+export const logout = createAsyncThunk('auth/logout', async (_payload, { rejectWithValue }) => {
+  try {
+    await logoutApi();
+    return null;
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error, 'Unable to log out'));
+  }
+});
+
+export const fetchCurrentUser = createAsyncThunk(
+  'auth/fetchCurrentUser',
+  async (_payload, { rejectWithValue }) => {
+    try {
+      const response = await fetchCurrentUserApi();
+      return normalizeUser(response);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Unable to fetch the current user'));
+    }
+  }
+);
+
+const initialState = {
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null,
+};
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    clearAuthError(state) {
+      state.error = null;
+    },
+    resetAuthState() {
+      return { ...initialState };
+    },
+  },
+  extraReducers: (builder) => {
+    const startLoading = (state) => {
+      state.isLoading = true;
+      state.error = null;
+    };
+
+    const fail = (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload || action.error.message || 'Request failed';
+    };
+
+    const succeedWithUser = (state, action) => {
+      state.isLoading = false;
+      state.user = action.payload;
+      state.isAuthenticated = true;
+      state.error = null;
+    };
+
+    builder
+      .addCase(login.pending, startLoading)
+      .addCase(login.fulfilled, succeedWithUser)
+      .addCase(login.rejected, fail)
+      .addCase(registerLandlord.pending, startLoading)
+      .addCase(registerLandlord.fulfilled, succeedWithUser)
+      .addCase(registerLandlord.rejected, fail)
+      .addCase(registerWithInvite.pending, startLoading)
+      .addCase(registerWithInvite.fulfilled, succeedWithUser)
+      .addCase(registerWithInvite.rejected, fail)
+      .addCase(fetchCurrentUser.pending, startLoading)
+      .addCase(fetchCurrentUser.fulfilled, succeedWithUser)
+      .addCase(fetchCurrentUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+        state.error = action.payload || action.error.message || 'Request failed';
+      })
+      .addCase(logout.pending, startLoading)
+      .addCase(logout.fulfilled, () => ({ ...initialState }))
+      .addCase(logout.rejected, () => ({ ...initialState }));
+  },
+});
+
+export const { clearAuthError, resetAuthState } = authSlice.actions;
+export default authSlice.reducer;
