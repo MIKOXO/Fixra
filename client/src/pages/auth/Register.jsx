@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { HiOutlineUser, HiOutlineMail, HiOutlinePhone, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import AuthShell from '@features/auth/AuthShell';
@@ -8,6 +8,7 @@ import { registerSchema } from '@features/auth/auth.schemas';
 import { getDashboardPathForRole } from '@features/auth/auth.utils';
 import useAuth from '@hooks/useAuth';
 import Button from '@components/ui/Button';
+import PhoneInput from '@components/ui/PhoneInput';
 
 const inputClassName =
   'mt-1.5 w-full rounded-xl border border-charcoal-200/90 bg-white px-4 py-2.5 text-charcoal-950 text-sm outline-none transition duration-200 placeholder:text-charcoal-400 placeholder:text-xs focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
@@ -21,6 +22,7 @@ const Register = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
@@ -106,15 +108,19 @@ const Register = () => {
             Phone
           </label>
           <div className="relative">
-            <input
-              id="phone"
-              type="tel"
-              autoComplete="tel"
-              className={inputClassName}
-              placeholder="+1 555 123 4567"
-              {...register('phone')}
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInput
+                  id="phone"
+                  className={inputClassName}
+                  placeholder="+251 91 123 4567"
+                  {...field}
+                />
+              )}
             />
-            <HiOutlinePhone className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-charcoal-400" />
+            <HiOutlinePhone className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-charcoal-400 pointer-events-none" />
           </div>
           {errors.phone?.message ? (
             <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>

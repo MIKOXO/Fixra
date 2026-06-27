@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import AuthShell from '@features/auth/AuthShell';
 import { inviteRegisterSchema } from '@features/auth/auth.schemas';
 import { getDashboardPathForRole, getRoleLabel } from '@features/auth/auth.utils';
 import { fetchInviteTokenMeta } from '@services/auth.api';
 import useAuth from '@hooks/useAuth';
+import PhoneInput from '@components/ui/PhoneInput';
 
 const inputClassName =
   'mt-2 w-full rounded-2xl border border-charcoal-200 bg-white px-4 py-3 text-charcoal-950 outline-none transition focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
@@ -84,6 +85,7 @@ const InviteRegister = () => {
     register,
     reset,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(inviteRegisterSchema),
@@ -262,13 +264,17 @@ const InviteRegister = () => {
               <label className="text-sm font-medium text-charcoal-700" htmlFor="phone">
                 Phone
               </label>
-              <input
-                id="phone"
-                type="tel"
-                autoComplete="tel"
-                className={inputClassName}
-                placeholder="+1 555 123 4567"
-                {...register('phone')}
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInput
+                    id="phone"
+                    className={inputClassName}
+                    placeholder="+251 91 123 4567"
+                    {...field}
+                  />
+                )}
               />
               {errors.phone?.message ? (
                 <p className="mt-2 text-sm text-red-600">{errors.phone.message}</p>
