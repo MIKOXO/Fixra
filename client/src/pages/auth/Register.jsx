@@ -9,6 +9,7 @@ import { getDashboardPathForRole } from '@features/auth/auth.utils';
 import useAuth from '@hooks/useAuth';
 import Button from '@components/ui/Button';
 import PhoneInput from '@components/ui/PhoneInput';
+import PasswordStrengthIndicator from '@components/ui/PasswordStrengthIndicator';
 
 const inputClassName =
   'mt-1.5 w-full rounded-xl border border-charcoal-200/90 bg-white px-4 py-2.5 text-charcoal-950 text-sm outline-none transition duration-200 placeholder:text-charcoal-400 placeholder:text-xs focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
@@ -23,6 +24,7 @@ const Register = () => {
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
@@ -42,6 +44,8 @@ const Register = () => {
   }, [isAuthenticated, navigate, user]);
 
   useEffect(() => () => clearError(), [clearError]);
+
+  const passwordValue = watch('password');
 
   const onSubmit = handleSubmit(async (values) => {
     const result = await registerLandlord(values);
@@ -156,6 +160,7 @@ const Register = () => {
             {errors.password?.message ? (
               <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
             ) : null}
+            <PasswordStrengthIndicator password={passwordValue} />
           </div>
 
           <div>

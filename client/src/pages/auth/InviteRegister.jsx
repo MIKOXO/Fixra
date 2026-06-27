@@ -8,6 +8,7 @@ import { getDashboardPathForRole, getRoleLabel } from '@features/auth/auth.utils
 import { fetchInviteTokenMeta } from '@services/auth.api';
 import useAuth from '@hooks/useAuth';
 import PhoneInput from '@components/ui/PhoneInput';
+import PasswordStrengthIndicator from '@components/ui/PasswordStrengthIndicator';
 
 const inputClassName =
   'mt-2 w-full rounded-2xl border border-charcoal-200 bg-white px-4 py-3 text-charcoal-950 outline-none transition focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
@@ -86,6 +87,7 @@ const InviteRegister = () => {
     reset,
     handleSubmit,
     control,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(inviteRegisterSchema),
@@ -98,6 +100,7 @@ const InviteRegister = () => {
     },
   });
 
+  const passwordValue = watch('password');
   const contextLines = useMemo(() => buildContextLines(invite), [invite]);
 
   useEffect(() => {
@@ -297,6 +300,7 @@ const InviteRegister = () => {
                 {errors.password?.message ? (
                   <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
                 ) : null}
+                <PasswordStrengthIndicator password={passwordValue} />
               </div>
 
               <div>
