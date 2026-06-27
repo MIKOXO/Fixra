@@ -8,7 +8,7 @@ const api = axios.create({
 let isRefreshing = false;
 let failedQueue = [];
 let onAuthExpired = () => {
-  window.location.href = '/login';
+  window.location.replace('/login');
 };
 
 export const setOnAuthExpired = (handler) => {
@@ -27,8 +27,20 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || '';
+    const skipAuthRefresh = [
+      '/auth/login',
+      '/auth/register',
+      '/auth/register/invite',
+      '/auth/google',
+      '/auth/google/callback',
+      '/auth/logout',
+      '/auth/refresh',
+      '/auth/login-failed',
+      '/auth/invite',
+    ].some((path) => requestUrl.includes(path));
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !skipAuthRefresh) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -52,6 +64,7 @@ api.interceptors.response.use(
         return Promise.reject({
           message:
             refreshError.response?.data?.message || 'Session expired',
+          code: refreshError.response?.data?.code || 'SESSION_EXPIRED',
           status: 401,
         });
       } finally {
@@ -64,7 +77,9 @@ api.interceptors.response.use(
         error.response?.data?.message ||
         error.message ||
         'An unexpected error occurred',
+      code: error.response?.data?.code || 'REQUEST_ERROR',
       status: error.response?.status || 500,
+      issues: error.response?.data?.issues || [],
     });
   }
 );
