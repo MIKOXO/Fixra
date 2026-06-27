@@ -18,7 +18,7 @@ const AuthShell = ({ eyebrow, title, children, footer }) => {
             {footer}
           </div>
 
-          <div className="rounded-3xl border border-charcoal-200/70 bg-white/92 p-6 shadow-[0_24px_90px_rgba(26,26,31,0.12)] backdrop-blur-xl">
+          <div className="rounded-3xl border border-charcoal-200 bg-white/92 p-6 shadow-[0_4px_16px_rgba(26,26,31,0.06)] backdrop-blur-xl">
             <div className="mb-5">
               <p className="font-heading text-xs font-semibold uppercase tracking-[0.32em] text-primary-500">
                 {eyebrow}
