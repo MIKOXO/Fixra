@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+const ethiopianPhoneRegex = /^\+251\d{9}$/;
+
 const optionalPhoneSchema = z.preprocess(
   (value) => {
     if (typeof value === 'string' && value.trim() === '') {
@@ -8,7 +10,7 @@ const optionalPhoneSchema = z.preprocess(
 
     return value;
   },
-  z.string().trim().min(6, 'Phone number must be at least 6 characters').max(30).optional()
+  z.string().regex(ethiopianPhoneRegex, 'Phone must be a valid Ethiopian number starting with +251 and 9 digits (e.g. +251911234567)').optional()
 );
 
 const loginSchema = z.object({
