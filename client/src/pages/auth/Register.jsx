@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,6 +7,8 @@ import AuthShell from '@features/auth/AuthShell';
 import { registerSchema } from '@features/auth/auth.schemas';
 import { getDashboardPathForRole } from '@features/auth/auth.utils';
 import useAuth from '@hooks/useAuth';
+import useNotification from '@hooks/useNotification';
+import useAutoClearErrors from '@hooks/useAutoClearErrors';
 import Button from '@components/ui/Button';
 import PhoneInput from '@components/ui/PhoneInput';
 import PasswordStrengthIndicator from '@components/ui/PasswordStrengthIndicator';
@@ -19,6 +21,10 @@ const Register = () => {
   const { registerLandlord, user, isAuthenticated, isLoading, error, clearError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { notification, dismiss, showSuccess } = useNotification(error, {
+    onErrorDismiss: clearError
+  });
+  const navTimerRef = useRef(null);
 
   const {
     register,
@@ -26,6 +32,7 @@ const Register = () => {
     control,
     watch,
     formState: { errors, isSubmitting },
+    clearErrors,
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -37,13 +44,27 @@ const Register = () => {
     },
   });
 
+  useAutoClearErrors(errors, clearErrors);
+
+  const redirectAfterSuccess = useCallback((role) => {
+    showSuccess('Account created! Redirecting...');
+    navTimerRef.current = setTimeout(() => {
+      navigate(getDashboardPathForRole(role), { replace: true });
+    }, 1500);
+  }, [navigate, showSuccess]);
+
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate(getDashboardPathForRole(user.role), { replace: true });
+      redirectAfterSuccess(user.role);
     }
-  }, [isAuthenticated, navigate, user]);
+  }, [isAuthenticated, user, redirectAfterSuccess]);
 
-  useEffect(() => () => clearError(), [clearError]);
+  useEffect(() => {
+    return () => {
+      clearError();
+      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    };
+  }, [clearError]);
 
   const passwordValue = watch('password');
 
@@ -52,7 +73,7 @@ const Register = () => {
     const registeredUser = result?.payload;
 
     if (registeredUser) {
-      navigate(getDashboardPathForRole(registeredUser.role), { replace: true });
+      redirectAfterSuccess(registeredUser.role);
     }
   });
 
@@ -194,9 +215,22 @@ const Register = () => {
           </div>
         </div>
 
-        {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs text-red-700">
-            {error}
+        {notification ? (
+          <div
+            className={`rounded-xl border px-4 py-2.5 text-xs flex items-center justify-between gap-3 ${
+              notification.type === 'error'
+                ? 'border-red-200 bg-red-50 text-red-700'
+                : 'border-sage-200 bg-sage-50 text-sage-700'
+            }`}
+          >
+            <span>{notification.message}</span>
+            <button
+              type="button"
+              onClick={dismiss}
+              className="shrink-0 text-2xl leading-none opacity-60 hover:opacity-100 transition-opacity"
+            >
+              &times;
+            </button>
           </div>
         ) : null}
 

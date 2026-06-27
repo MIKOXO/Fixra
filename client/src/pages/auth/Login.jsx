@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
@@ -8,6 +8,8 @@ import AuthShell from '@features/auth/AuthShell';
 import { loginSchema } from '@features/auth/auth.schemas';
 import { getDashboardPathForRole } from '@features/auth/auth.utils';
 import useAuth from '@hooks/useAuth';
+import useNotification from '@hooks/useNotification';
+import useAutoClearErrors from '@hooks/useAutoClearErrors';
 import Button from '@components/ui/Button';
 
 const inputClassName =
@@ -18,11 +20,16 @@ const Login = () => {
   const { login, user, isAuthenticated, isLoading, error, clearError } =
     useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const { notification, dismiss, showSuccess } = useNotification(error, {
+    onErrorDismiss: clearError
+  });
+  const navTimerRef = useRef(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    clearErrors,
   } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -31,20 +38,34 @@ const Login = () => {
     },
   });
 
+  useAutoClearErrors(errors, clearErrors);
+
+  const redirectAfterSuccess = useCallback((role) => {
+    showSuccess('Welcome back! Redirecting...');
+    navTimerRef.current = setTimeout(() => {
+      navigate(getDashboardPathForRole(role), { replace: true });
+    }, 1500);
+  }, [navigate, showSuccess]);
+
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate(getDashboardPathForRole(user.role), { replace: true });
+      redirectAfterSuccess(user.role);
     }
-  }, [isAuthenticated, navigate, user]);
+  }, [isAuthenticated, user, redirectAfterSuccess]);
 
-  useEffect(() => () => clearError(), [clearError]);
+  useEffect(() => {
+    return () => {
+      clearError();
+      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    };
+  }, [clearError]);
 
   const onSubmit = handleSubmit(async (values) => {
     const result = await login(values);
     const loggedInUser = result?.payload;
 
     if (loggedInUser) {
-      navigate(getDashboardPathForRole(loggedInUser.role), { replace: true });
+      redirectAfterSuccess(loggedInUser.role);
     }
   });
 
@@ -119,9 +140,22 @@ const Login = () => {
           ) : null}
         </div>
 
-        {error ? (
-          <div className='rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs text-red-700'>
-            {error}
+        {notification ? (
+          <div
+            className={`rounded-xl border px-4 py-2.5 text-xs ${
+              notification.type === 'error'
+                ? 'border-red-200 bg-red-50 text-red-700'
+                : 'border-sage-200 bg-sage-50 text-sage-700'
+            } flex items-center justify-between gap-3`}
+          >
+            <span>{notification.message}</span>
+            <button
+              type="button"
+              onClick={dismiss}
+              className="shrink-0 text-2xl leading-none opacity-60 hover:opacity-100 transition-opacity"
+            >
+              &times;
+            </button>
           </div>
         ) : null}
 

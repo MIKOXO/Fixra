@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -7,6 +7,8 @@ import { inviteRegisterSchema } from '@features/auth/auth.schemas';
 import { getDashboardPathForRole, getRoleLabel } from '@features/auth/auth.utils';
 import { fetchInviteTokenMeta } from '@services/auth.api';
 import useAuth from '@hooks/useAuth';
+import useNotification from '@hooks/useNotification';
+import useAutoClearErrors from '@hooks/useAutoClearErrors';
 import PhoneInput from '@components/ui/PhoneInput';
 import PasswordStrengthIndicator from '@components/ui/PasswordStrengthIndicator';
 
@@ -78,6 +80,10 @@ const InviteRegister = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token')?.trim() || '';
   const { registerWithInvite, user, isAuthenticated, isLoading, error, clearError } = useAuth();
+  const { notification, dismiss, showSuccess } = useNotification(error, {
+    onErrorDismiss: clearError
+  });
+  const navTimerRef = useRef(null);
   const [invite, setInvite] = useState(null);
   const [inviteStatus, setInviteStatus] = useState('loading');
   const [inviteMessage, setInviteMessage] = useState('');
@@ -89,6 +95,7 @@ const InviteRegister = () => {
     control,
     watch,
     formState: { errors, isSubmitting },
+    clearErrors,
   } = useForm({
     resolver: zodResolver(inviteRegisterSchema),
     defaultValues: {
@@ -100,16 +107,30 @@ const InviteRegister = () => {
     },
   });
 
+  useAutoClearErrors(errors, clearErrors);
+
   const passwordValue = watch('password');
   const contextLines = useMemo(() => buildContextLines(invite), [invite]);
 
+  const redirectAfterSuccess = useCallback((role) => {
+    showSuccess('Account created! Redirecting...');
+    navTimerRef.current = setTimeout(() => {
+      navigate(getDashboardPathForRole(role), { replace: true });
+    }, 1500);
+  }, [navigate, showSuccess]);
+
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate(getDashboardPathForRole(user.role), { replace: true });
+      redirectAfterSuccess(user.role);
     }
-  }, [isAuthenticated, navigate, user]);
+  }, [isAuthenticated, user, redirectAfterSuccess]);
 
-  useEffect(() => () => clearError(), [clearError]);
+  useEffect(() => {
+    return () => {
+      clearError();
+      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    };
+  }, [clearError]);
 
   useEffect(() => {
     if (!token) {
@@ -166,7 +187,7 @@ const InviteRegister = () => {
     const registeredUser = result?.payload;
 
     if (registeredUser) {
-      navigate(getDashboardPathForRole(registeredUser.role), { replace: true });
+      redirectAfterSuccess(registeredUser.role);
     }
   });
 
@@ -321,9 +342,22 @@ const InviteRegister = () => {
               </div>
             </div>
 
-            {error ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
+            {notification ? (
+              <div
+                className={`rounded-2xl border px-4 py-3 text-sm flex items-center justify-between gap-3 ${
+                  notification.type === 'error'
+                    ? 'border-red-200 bg-red-50 text-red-700'
+                    : 'border-sage-200 bg-sage-50 text-sage-700'
+                }`}
+              >
+                <span>{notification.message}</span>
+                <button
+                  type="button"
+                  onClick={dismiss}
+                  className="shrink-0 text-2xl leading-none opacity-60 hover:opacity-100 transition-opacity"
+                >
+                  &times;
+                </button>
               </div>
             ) : null}
 
