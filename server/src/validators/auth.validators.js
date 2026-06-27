@@ -8,7 +8,13 @@ const profileSchema = z.record(z.unknown()).default({});
 const registerSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
-  password: z.string().min(8).max(128),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128)
+    .refine((val) => /[A-Z]/.test(val), 'Password must contain an uppercase letter')
+    .refine((val) => /[a-z]/.test(val), 'Password must contain a lowercase letter')
+    .refine((val) => /[0-9]/.test(val), 'Password must contain a number')
+    .refine((val) => /[^A-Za-z0-9]/.test(val), 'Password must contain a special character'),
   phone: z.string().regex(ethiopianPhoneRegex, ethiopianPhoneMessage).optional(),
   profile: profileSchema.optional(),
 });
