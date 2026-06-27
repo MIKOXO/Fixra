@@ -5,6 +5,7 @@ import validateRequest from '../middleware/validate.middleware.js';
 import {
   googleAuth,
   googleCallback,
+  getInviteTokenMeta,
   login,
   loginFailed,
   refresh,
@@ -14,7 +15,7 @@ import {
   registerWithInvite,
 } from '../controllers/auth.controller.js';
 import { loginSchema, registerSchema } from '../validators/auth.validators.js';
-import { registerWithInviteSchema } from '../validators/invite.validators.js';
+import { inviteTokenQuerySchema, registerWithInviteSchema } from '../validators/invite.validators.js';
 
 const router = Router();
 const isGoogleOAuthConfigured = Boolean(
@@ -39,6 +40,7 @@ router.post(
   registerWithInvite
 );
 router.post('/login', validateRequest({ body: loginSchema }), login);
+router.get('/invite', validateRequest({ query: inviteTokenQuerySchema }), getInviteTokenMeta);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
 router.get('/me', authMiddleware, me);

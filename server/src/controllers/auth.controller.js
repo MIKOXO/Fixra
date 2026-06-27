@@ -161,6 +161,7 @@ const registerWithInvite = async (req, res, next) => {
     }
 
     const tokens = signTokens(user);
+    setAuthCookies(res, tokens);
 
     return res.status(201).json({
       message: `${invite.role} registered successfully`,
@@ -175,8 +176,28 @@ const loginFailed = (_req, res) => {
   return res.status(401).json({ message: 'Google authentication failed' });
 };
 
+const getInviteTokenMeta = async (req, res, next) => {
+  try {
+    const { token } = req.query;
+    const invite = await validateToken(token);
+
+    return res.status(200).json({
+      invite: {
+        role: invite.role,
+        email: invite.email,
+        meta: invite.meta,
+        expiresAt: invite.expiresAt,
+        isUsed: invite.isUsed,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export {
   clearAuthCookies,
+  getInviteTokenMeta,
   googleAuth,
   googleCallback,
   login,
