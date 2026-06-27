@@ -1,39 +1,40 @@
-import { createBrowserRouter, Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { createBrowserRouter, Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { setOnAuthExpired } from '@services/api';
 import Landing from '@pages/public/Landing';
+import Login from '@pages/auth/Login';
+import Register from '@pages/auth/Register';
+import InviteRegister from '@pages/auth/InviteRegister';
+import OAuthCallback from '@pages/auth/OAuthCallback';
+import Dashboard from '@pages/app/Dashboard';
 import ProtectedRoute from './ProtectedRoute';
 
-const AuthPlaceholder = ({ title }) => (
-  <div className="min-h-screen flex items-center justify-center bg-surface-warm px-6">
-    <div className="w-full max-w-lg rounded-3xl border border-charcoal-200 bg-white p-8 shadow-[0_24px_80px_rgba(26,26,31,0.08)]">
-      <p className="font-heading text-xs font-semibold uppercase tracking-[0.3em] text-primary-500">
-        Fixra
-      </p>
-      <h1 className="mt-4 font-heading text-3xl font-bold text-charcoal-950">
-        {title}
-      </h1>
-      <div className="mt-8">
-        <Link
-          to="/"
-          className="inline-flex items-center justify-center rounded-full bg-primary-500 px-6 py-3 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600"
-        >
-          Back to home
-        </Link>
-      </div>
-    </div>
-  </div>
-);
+const RootLayout = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    setOnAuthExpired(() => {
+      if (location.pathname !== '/login') {
+        navigate('/login', { replace: true });
+      }
+    });
+  }, [location.pathname, navigate]);
+
+  return <Outlet />;
+};
 
 const NotFound = () => (
-  <div className="min-h-screen flex items-center justify-center bg-surface-warm px-6 text-center">
-    <div>
-      <p className="font-heading text-sm font-semibold uppercase tracking-[0.3em] text-primary-500">
+  <div className="flex min-h-screen items-center justify-center bg-surface-warm px-6 text-center">
+    <div className="max-w-lg">
+      <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-primary-500">
         404
       </p>
       <h1 className="mt-4 font-heading text-4xl font-bold text-charcoal-950">
         Page not found
       </h1>
-      <p className="mt-3 font-body text-charcoal-500">
-        The page you’re looking for does not exist.
+      <p className="mt-3 text-charcoal-600">
+        The page you are looking for does not exist.
       </p>
       <Link
         to="/"
@@ -47,29 +48,42 @@ const NotFound = () => (
 
 const router = createBrowserRouter([
   {
-    path: '/',
-    element: <Landing />,
-  },
-  {
-    path: '/login',
-    element: <AuthPlaceholder title="Log in" />,
-  },
-  {
-    path: '/register',
-    element: <AuthPlaceholder title="Create your account" />,
-  },
-  {
-    element: <ProtectedRoute />,
+    element: <RootLayout />,
     children: [
       {
-        path: 'app',
-        element: <AuthPlaceholder title="Protected area" />,
+        path: '/',
+        element: <Landing />,
+      },
+      {
+        path: '/login',
+        element: <Login />,
+      },
+      {
+        path: '/register',
+        element: <Register />,
+      },
+      {
+        path: '/register/invite',
+        element: <InviteRegister />,
+      },
+      {
+        path: '/auth/callback',
+        element: <OAuthCallback />,
+      },
+      {
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: '/app/:section?',
+            element: <Dashboard />,
+          },
+        ],
+      },
+      {
+        path: '*',
+        element: <NotFound />,
       },
     ],
-  },
-  {
-    path: '*',
-    element: <NotFound />,
   },
 ]);
 
