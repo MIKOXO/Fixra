@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        heading: ['Poppins', 'sans-serif'],
-        body: ['Lora', 'serif'],
+        heading: ['Raleway', 'sans-serif'],
+        body: ['Raleway', 'sans-serif'],
       },
       colors: {
         // Primary — Warm terracotta / coral
