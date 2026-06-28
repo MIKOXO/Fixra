@@ -8,7 +8,7 @@ import {
 } from '@services/auth.api';
 
 const extractErrorMessage = (error, fallback) =>
-  error?.message || error?.response?.data?.message || fallback;
+  error?.response?.data?.message || error?.message || fallback;
 
 const normalizeUser = (payload) => payload?.user || payload;
 
