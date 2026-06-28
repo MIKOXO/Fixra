@@ -36,6 +36,17 @@ const userSchema = new Schema(
       type: String,
       trim: true,
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationCode: {
+      type: String,
+      select: false,
+    },
+    emailVerificationExpires: {
+      type: Date,
+    },
     isActive: {
       type: Boolean,
       default: true,
