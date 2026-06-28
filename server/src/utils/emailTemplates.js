@@ -64,4 +64,21 @@ const estimateApprovedTemplate = (job, ticket) => {
   return { subject, html };
 };
 
-export { ticketStatusTemplate, estimateSubmittedTemplate, estimateApprovedTemplate };
+const verificationCodeTemplate = (code, expiryMinutes = 10) => {
+  const subject = 'Verify your email address';
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
+      <h2 style="color: #1a1a2e; margin: 0 0 8px;">Verify your email</h2>
+      <p style="color: #555; font-size: 14px; margin: 0 0 24px;">Enter this code to activate your Fixra account.</p>
+      <div style="background: #f5f5f7; border-radius: 12px; padding: 24px; text-align: center;">
+        <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #1a1a2e;">${code}</span>
+      </div>
+      <p style="color: #888; font-size: 12px; margin-top: 24px;">This code expires in ${expiryMinutes} minutes. If you did not create an account, you can ignore this email.</p>
+      <p style="color: #888; font-size: 12px; margin-top: 8px;">Fixra — Rental Property Maintenance</p>
+    </div>`;
+
+  return { subject, html };
+};
+
+export { ticketStatusTemplate, estimateSubmittedTemplate, estimateApprovedTemplate, verificationCodeTemplate };
