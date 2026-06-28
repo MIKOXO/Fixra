@@ -5,6 +5,8 @@ import {
   logout as logoutApi,
   registerLandlord as registerLandlordApi,
   registerWithInvite as registerWithInviteApi,
+  verifyEmail as verifyEmailApi,
+  resendVerificationCode as resendVerificationApi,
 } from '@services/auth.api';
 
 const extractErrorMessage = (error, fallback) =>
@@ -66,6 +68,27 @@ export const logout = createAsyncThunk('auth/logout', async (_payload, { rejectW
   }
 });
 
+export const verifyEmail = createAsyncThunk('auth/verifyEmail', async ({ email, code }, { rejectWithValue }) => {
+  try {
+    const response = await verifyEmailApi(email, code);
+    return normalizeUser(response);
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error, 'Unable to verify email'));
+  }
+});
+
+export const resendVerification = createAsyncThunk(
+  'auth/resendVerification',
+  async (email, { rejectWithValue }) => {
+    try {
+      const data = await resendVerificationApi(email);
+      return data;
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Unable to resend code'));
+    }
+  }
+);
+
 export const fetchCurrentUser = createAsyncThunk(
   'auth/fetchCurrentUser',
   async (_payload, { rejectWithValue }) => {
@@ -114,16 +137,31 @@ const authSlice = createSlice({
       state.error = null;
     };
 
+    const succeedWithoutAuth = (state) => {
+      state.isLoading = false;
+      state.error = null;
+    };
+
     builder
       .addCase(login.pending, startLoading)
       .addCase(login.fulfilled, succeedWithUser)
       .addCase(login.rejected, fail)
       .addCase(registerLandlord.pending, startLoading)
-      .addCase(registerLandlord.fulfilled, succeedWithUser)
+      .addCase(registerLandlord.fulfilled, succeedWithoutAuth)
       .addCase(registerLandlord.rejected, fail)
       .addCase(registerWithInvite.pending, startLoading)
-      .addCase(registerWithInvite.fulfilled, succeedWithUser)
+      .addCase(registerWithInvite.fulfilled, succeedWithoutAuth)
       .addCase(registerWithInvite.rejected, fail)
+      .addCase(verifyEmail.pending, startLoading)
+      .addCase(verifyEmail.fulfilled, succeedWithUser)
+      .addCase(verifyEmail.rejected, fail)
+      .addCase(resendVerification.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(resendVerification.fulfilled, (state) => {
+        state.error = null;
+      })
+      .addCase(resendVerification.rejected, fail)
       .addCase(fetchCurrentUser.pending, startLoading)
       .addCase(fetchCurrentUser.fulfilled, succeedWithUser)
       .addCase(fetchCurrentUser.rejected, (state, action) => {
