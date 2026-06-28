@@ -14,6 +14,15 @@ const notFound = (_req, _res, next) => {
   next(new AppError('Route not found', 404, 'NOT_FOUND'));
 };
 
+const SILENT_CODES = new Set([
+  'ACCESS_TOKEN_MISSING',
+  'REFRESH_TOKEN_MISSING',
+  'ACCESS_TOKEN_INVALID',
+  'REFRESH_TOKEN_INVALID',
+  'UNAUTHORIZED',
+  'INVALID_CREDENTIALS',
+]);
+
 const errorHandler = (error, _req, res, _next) => {
   const isZodError = error instanceof ZodError;
   const statusCode = error.statusCode || (isZodError ? 400 : 500);
@@ -32,7 +41,7 @@ const errorHandler = (error, _req, res, _next) => {
     }));
   }
 
-  if (process.env.NODE_ENV !== 'production' || statusCode >= 500) {
+  if (statusCode >= 500 || !SILENT_CODES.has(code)) {
     console.error(error);
   }
 
