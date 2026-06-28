@@ -7,6 +7,8 @@ import {
   logout as logoutThunk,
   registerLandlord as registerLandlordThunk,
   registerWithInvite as registerWithInviteThunk,
+  verifyEmail as verifyEmailThunk,
+  resendVerification as resendVerificationThunk,
 } from '@store/slices/authSlice';
 
 const useAuth = () => {
@@ -21,6 +23,8 @@ const useAuth = () => {
       registerWithInvite: (payload) => dispatch(registerWithInviteThunk(payload)),
       logout: () => dispatch(logoutThunk()),
       fetchCurrentUser: () => dispatch(fetchCurrentUserThunk()),
+      verifyEmail: (payload) => dispatch(verifyEmailThunk(payload)),
+      resendVerification: (email) => dispatch(resendVerificationThunk(email)),
     }),
     [dispatch]
   );
