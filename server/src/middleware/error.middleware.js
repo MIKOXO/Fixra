@@ -21,6 +21,7 @@ const SILENT_CODES = new Set([
   'REFRESH_TOKEN_INVALID',
   'UNAUTHORIZED',
   'INVALID_CREDENTIALS',
+  'EMAIL_NOT_VERIFIED',
 ]);
 
 const errorHandler = (error, _req, res, _next) => {
