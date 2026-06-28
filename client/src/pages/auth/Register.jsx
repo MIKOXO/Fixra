@@ -46,18 +46,22 @@ const Register = () => {
 
   useAutoClearErrors(errors, clearErrors);
 
-  const redirectAfterSuccess = useCallback((role) => {
-    showSuccess('Account created! Redirecting...');
+  const redirectToVerify = useCallback((email, expiresAt) => {
+    showSuccess('Account created! Check your email for the verification code.');
     navTimerRef.current = setTimeout(() => {
-      navigate(getDashboardPathForRole(role), { replace: true });
+      navigate('/verify-email', { state: { email, expiresAt } });
     }, 1500);
   }, [navigate, showSuccess]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      redirectAfterSuccess(user.role);
+      const role = user.role;
+      showSuccess('Account created! Redirecting...');
+      navTimerRef.current = setTimeout(() => {
+        navigate(getDashboardPathForRole(role), { replace: true });
+      }, 1500);
     }
-  }, [isAuthenticated, user, redirectAfterSuccess]);
+  }, [isAuthenticated, navigate, user, showSuccess]);
 
   useEffect(() => {
     return () => {
@@ -71,11 +75,7 @@ const Register = () => {
   const onSubmit = handleSubmit(async (values) => {
     const result = await registerLandlord(values);
     if (result?.error) return;
-    const registeredUser = result?.payload;
-
-    if (registeredUser) {
-      redirectAfterSuccess(registeredUser.role);
-    }
+    redirectToVerify(values.email, result?.payload?.expiresAt);
   });
 
   return (

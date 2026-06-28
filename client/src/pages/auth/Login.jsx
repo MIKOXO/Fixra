@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { HiOutlineMail, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import { FcGoogle } from 'react-icons/fc';
 import AuthShell from '@features/auth/AuthShell';
@@ -17,6 +17,7 @@ const inputClassName =
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, user, isAuthenticated, isLoading, error, clearError } =
     useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -62,7 +63,13 @@ const Login = () => {
 
   const onSubmit = handleSubmit(async (values) => {
     const result = await login(values);
-    if (result?.error) return;
+    if (result?.error) {
+      const msg = result.payload || '';
+      if (msg.includes('Email not verified')) {
+        navigate('/verify-email', { state: { email: values.email }, replace: true });
+      }
+      return;
+    }
     const loggedInUser = result?.payload;
 
     if (loggedInUser) {
