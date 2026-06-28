@@ -24,4 +24,13 @@ const loginSchema = z.object({
   password: z.string().min(1).max(128),
 });
 
-export { loginSchema, registerSchema };
+const verifyEmailSchema = z.object({
+  email: z.string().trim().email().transform((value) => value.toLowerCase()),
+  code: z.string().length(6, 'Code must be exactly 6 digits'),
+});
+
+const resendVerificationSchema = z.object({
+  email: z.string().trim().email().transform((value) => value.toLowerCase()),
+});
+
+export { loginSchema, registerSchema, verifyEmailSchema, resendVerificationSchema };
