@@ -5,6 +5,7 @@ import Landing from '@pages/public/Landing';
 import Login from '@pages/auth/Login';
 import Register from '@pages/auth/Register';
 import InviteRegister from '@pages/auth/InviteRegister';
+import VerifyEmail from '@pages/auth/VerifyEmail';
 import OAuthCallback from '@pages/auth/OAuthCallback';
 import Dashboard from '@pages/app/Dashboard';
 import ProtectedRoute from './ProtectedRoute';
@@ -69,6 +70,10 @@ const router = createBrowserRouter([
       {
         path: '/auth/callback',
         element: <OAuthCallback />,
+      },
+      {
+        path: '/verify-email',
+        element: <VerifyEmail />,
       },
       {
         element: <ProtectedRoute />,
