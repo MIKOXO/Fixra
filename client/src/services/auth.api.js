@@ -18,5 +18,11 @@ export const fetchCurrentUser = () =>
 export const fetchInviteTokenMeta = (token) =>
   api.get('/auth/invite', { params: { token } }).then((res) => res.data);
 
+export const verifyEmail = (email, code) =>
+  api.post('/auth/verify-email', { email, code }).then((res) => res.data);
+
+export const resendVerificationCode = (email) =>
+  api.post('/auth/resend-verification', { email }).then((res) => res.data);
+
 export const register = registerLandlord;
 export const getMe = fetchCurrentUser;
