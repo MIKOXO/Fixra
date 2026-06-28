@@ -13,8 +13,10 @@ import {
   me,
   register,
   registerWithInvite,
+  verifyEmailHandler,
+  resendVerificationHandler,
 } from '../controllers/auth.controller.js';
-import { loginSchema, registerSchema } from '../validators/auth.validators.js';
+import { loginSchema, registerSchema, verifyEmailSchema, resendVerificationSchema } from '../validators/auth.validators.js';
 import { inviteTokenQuerySchema, registerWithInviteSchema } from '../validators/invite.validators.js';
 
 const router = Router();
@@ -42,6 +44,8 @@ router.post(
 router.post('/login', validateRequest({ body: loginSchema }), login);
 router.get('/invite', validateRequest({ query: inviteTokenQuerySchema }), getInviteTokenMeta);
 router.post('/refresh', refresh);
+router.post('/verify-email', validateRequest({ body: verifyEmailSchema }), verifyEmailHandler);
+router.post('/resend-verification', validateRequest({ body: resendVerificationSchema }), resendVerificationHandler);
 router.post('/logout', logout);
 router.get('/me', authMiddleware, me);
 router.get('/google', googleAuth);

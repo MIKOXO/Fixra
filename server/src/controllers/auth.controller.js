@@ -6,6 +6,8 @@ import {
   registerLandlord,
   sanitizeUser,
   signTokens,
+  verifyEmail,
+  resendVerificationCode,
 } from '../services/auth.service.js';
 import { activateLink } from '../services/contractorLink.service.js';
 import {
@@ -44,13 +46,10 @@ const register = async (req, res, next) => {
   try {
     const { name, email, password, phone, profile } = req.body;
     const user = await registerLandlord({ name, email, password, phone, profile });
-    const tokens = signTokens(user);
-
-    setAuthCookies(res, tokens);
 
     return res.status(201).json({
-      message: 'Landlord registered successfully',
-      user: sanitizeUser(user),
+      message: 'Account created. Please check your email for a verification code.',
+      expiresAt: user.emailVerificationExpires,
     });
   } catch (error) {
     return next(error);
@@ -160,12 +159,9 @@ const registerWithInvite = async (req, res, next) => {
       await activateLink(user._id, invite.meta.landlordId);
     }
 
-    const tokens = signTokens(user);
-    setAuthCookies(res, tokens);
-
     return res.status(201).json({
-      message: `${invite.role} registered successfully`,
-      user: sanitizeUser(user),
+      message: 'Account created. Please check your email for a verification code.',
+      expiresAt: user.emailVerificationExpires,
     });
   } catch (error) {
     return next(error);
@@ -195,6 +191,37 @@ const getInviteTokenMeta = async (req, res, next) => {
   }
 };
 
+const verifyEmailHandler = async (req, res, next) => {
+  try {
+    const { email, code } = req.body;
+    const user = await verifyEmail(email, code);
+    const tokens = signTokens(user);
+
+    setAuthCookies(res, tokens);
+
+    return res.status(200).json({
+      message: 'Email verified successfully',
+      user: sanitizeUser(user),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const resendVerificationHandler = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await resendVerificationCode(email);
+
+    return res.status(200).json({
+      message: 'Verification code resent. Please check your email.',
+      expiresAt: user.emailVerificationExpires,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export {
   clearAuthCookies,
   getInviteTokenMeta,
@@ -208,4 +235,6 @@ export {
   logout,
   me,
   setAuthCookies,
+  verifyEmailHandler,
+  resendVerificationHandler,
 };
