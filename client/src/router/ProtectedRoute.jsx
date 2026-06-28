@@ -8,27 +8,19 @@ const ProtectedRoute = () => {
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   useEffect(() => {
-    let active = true;
+    if (hasCheckedAuth) return;
 
     if (isAuthenticated || user) {
       setHasCheckedAuth(true);
-      return () => {
-        active = false;
-      };
+      return;
     }
 
     if (!isLoading) {
       Promise.resolve(fetchCurrentUser()).finally(() => {
-        if (active) {
-          setHasCheckedAuth(true);
-        }
+        setHasCheckedAuth(true);
       });
     }
-
-    return () => {
-      active = false;
-    };
-  }, [fetchCurrentUser, isAuthenticated, isLoading, user]);
+  }, [fetchCurrentUser, isAuthenticated, isLoading, user, hasCheckedAuth]);
 
   if (!hasCheckedAuth || isLoading) {
     return (
