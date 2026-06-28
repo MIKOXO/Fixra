@@ -62,6 +62,7 @@ const Login = () => {
 
   const onSubmit = handleSubmit(async (values) => {
     const result = await login(values);
+    if (result?.error) return;
     const loggedInUser = result?.payload;
 
     if (loggedInUser) {

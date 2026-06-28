@@ -184,6 +184,7 @@ const InviteRegister = () => {
       token,
       data: values,
     });
+    if (result?.error) return;
     const registeredUser = result?.payload;
 
     if (registeredUser) {

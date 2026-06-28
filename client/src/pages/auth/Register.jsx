@@ -70,6 +70,7 @@ const Register = () => {
 
   const onSubmit = handleSubmit(async (values) => {
     const result = await registerLandlord(values);
+    if (result?.error) return;
     const registeredUser = result?.payload;
 
     if (registeredUser) {
