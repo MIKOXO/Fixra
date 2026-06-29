@@ -33,4 +33,25 @@ const resendVerificationSchema = z.object({
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
 });
 
-export { loginSchema, registerSchema, verifyEmailSchema, resendVerificationSchema };
+const requestPasswordResetSchema = z.object({
+  email: z.string().trim().email().transform((value) => value.toLowerCase()),
+});
+
+const verifyResetCodeSchema = z.object({
+  email: z.string().trim().email().transform((value) => value.toLowerCase()),
+  code: z.string().length(6, 'Code must be exactly 6 digits'),
+});
+
+const resetPasswordSchema = z.object({
+  email: z.string().trim().email().transform((value) => value.toLowerCase()),
+  resetToken: z.string().min(1, 'Reset token is required'),
+  newPassword: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128)
+    .refine((val) => /[A-Z]/.test(val), 'Password must contain an uppercase letter')
+    .refine((val) => /[a-z]/.test(val), 'Password must contain a lowercase letter')
+    .refine((val) => /[0-9]/.test(val), 'Password must contain a number')
+    .refine((val) => /[^A-Za-z0-9]/.test(val), 'Password must contain a special character'),
+});
+
+export { loginSchema, registerSchema, verifyEmailSchema, resendVerificationSchema, requestPasswordResetSchema, verifyResetCodeSchema, resetPasswordSchema };
