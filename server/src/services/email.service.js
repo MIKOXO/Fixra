@@ -1,11 +1,7 @@
-import resend from '../config/resend.js';
+import transporter from '../config/nodemailer.js';
 
 const sendEmail = async (to, subject, htmlBody) => {
-  if (!resend) {
-    throw new Error('Resend client not configured');
-  }
-
-  const data = await resend.emails.send({
+  const data = await transporter.sendMail({
     from: process.env.FROM_EMAIL,
     to,
     subject,
