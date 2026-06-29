@@ -9,6 +9,9 @@ import {
   registerWithInvite as registerWithInviteThunk,
   verifyEmail as verifyEmailThunk,
   resendVerification as resendVerificationThunk,
+  requestPasswordReset as requestPasswordResetThunk,
+  verifyResetCode as verifyResetCodeThunk,
+  resetPassword as resetPasswordThunk,
 } from '@store/slices/authSlice';
 
 const useAuth = () => {
@@ -25,6 +28,9 @@ const useAuth = () => {
       fetchCurrentUser: () => dispatch(fetchCurrentUserThunk()),
       verifyEmail: (payload) => dispatch(verifyEmailThunk(payload)),
       resendVerification: (email) => dispatch(resendVerificationThunk(email)),
+      requestPasswordReset: (email) => dispatch(requestPasswordResetThunk(email)),
+      verifyResetCode: (payload) => dispatch(verifyResetCodeThunk(payload)),
+      resetPassword: (payload) => dispatch(resetPasswordThunk(payload)),
     }),
     [dispatch]
   );
