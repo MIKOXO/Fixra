@@ -47,6 +47,13 @@ const userSchema = new Schema(
     emailVerificationExpires: {
       type: Date,
     },
+    passwordResetCode: {
+      type: String,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+    },
     isActive: {
       type: Boolean,
       default: true,
