@@ -3,12 +3,16 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { AppError } from '../middleware/error.middleware.js';
 import { sendEmail } from './email.service.js';
-import { verificationCodeTemplate } from '../utils/emailTemplates.js';
+import { verificationCodeTemplate, passwordResetTemplate } from '../utils/emailTemplates.js';
 
 const accessTokenTtl = process.env.JWT_EXPIRES_IN || '15m';
 const refreshTokenTtl = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 const verificationCodeExpiryMinutes = parseInt(process.env.VERIFICATION_CODE_EXPIRES_IN, 10) || 10;
 const verificationCodeExpiryMs = verificationCodeExpiryMinutes * 60 * 1000;
+const passwordResetExpiryMinutes = parseInt(process.env.PASSWORD_RESET_EXPIRES_MIN, 10) || 10;
+const passwordResetExpiryMs = passwordResetExpiryMinutes * 60 * 1000;
+const passwordResetCooldownSec = parseInt(process.env.PASSWORD_RESET_COOLDOWN_SEC, 10) || 60;
+const passwordResetCooldownMs = passwordResetCooldownSec * 1000;
 
 const signAccessToken = (payload) =>
   jwt.sign(payload, process.env.JWT_SECRET, {
@@ -243,6 +247,100 @@ const resendVerificationCode = async (email) => {
   return user;
 };
 
+const requestPasswordReset = async (email) => {
+  const user = await User.findOne({ email: email.toLowerCase() });
+
+  if (!user) {
+    return { message: 'If an account with that email exists, a password reset code has been sent.' };
+  }
+
+  const lastSent = user.passwordResetExpires
+    ? new Date(user.passwordResetExpires.getTime() - passwordResetExpiryMs)
+    : null;
+
+  if (lastSent && Date.now() - lastSent.getTime() < passwordResetCooldownMs) {
+    const remaining = Math.ceil((passwordResetCooldownMs - (Date.now() - lastSent.getTime())) / 1000);
+    throw new AppError(`Please wait ${remaining} seconds before requesting a new code.`, 429, 'RESET_COOLDOWN');
+  }
+
+  const code = generateVerificationCode();
+  const hashedCode = await hashVerificationCode(code);
+
+  user.passwordResetCode = hashedCode;
+  user.passwordResetExpires = new Date(Date.now() + passwordResetExpiryMs);
+  await user.save();
+
+  const { subject, html } = passwordResetTemplate(code, passwordResetExpiryMinutes);
+  try {
+    await sendEmail(user.email, subject, html);
+  } catch (error) {
+    throw new AppError('Failed to send password reset email. Please try again.', 500, 'EMAIL_SEND_FAILED');
+  }
+
+  return { message: 'If an account with that email exists, a password reset code has been sent.' };
+};
+
+const verifyResetCode = async (email, code) => {
+  const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordResetCode');
+
+  if (!user) {
+    throw new AppError('Invalid or expired reset code', 400, 'INVALID_RESET_CODE');
+  }
+
+  if (!user.passwordResetCode || !user.passwordResetExpires) {
+    throw new AppError('No reset code requested. Please request a password reset first.', 400, 'NO_RESET_CODE');
+  }
+
+  if (user.passwordResetExpires < new Date()) {
+    throw new AppError('Reset code expired. Please request a new one.', 400, 'RESET_CODE_EXPIRED');
+  }
+
+  const isValid = await compareVerificationCode(code, user.passwordResetCode);
+
+  if (!isValid) {
+    throw new AppError('Invalid reset code', 400, 'INVALID_RESET_CODE');
+  }
+
+  const resetToken = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: '5m' });
+
+  user.passwordResetCode = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  return { resetToken };
+};
+
+const resetPassword = async (email, resetToken, newPassword) => {
+  let decoded;
+  try {
+    decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+  } catch (_error) {
+    throw new AppError('Invalid or expired reset token. Please request a new code.', 400, 'INVALID_RESET_TOKEN');
+  }
+
+  if (decoded.email !== email.toLowerCase()) {
+    throw new AppError('Invalid reset token', 400, 'INVALID_RESET_TOKEN');
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
+
+  if (!user) {
+    throw new AppError('Invalid or expired reset token', 400, 'INVALID_RESET_TOKEN');
+  }
+
+  const isSame = await comparePassword(newPassword, user.passwordHash);
+
+  if (isSame) {
+    throw new AppError('New password must be different from your current password', 400, 'SAME_PASSWORD');
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+  user.passwordHash = passwordHash;
+  await user.save();
+
+  return { message: 'Password reset successfully.' };
+};
+
 const refreshUserTokens = async (refreshToken) => {
   if (!refreshToken) {
     throw new AppError('Refresh token missing', 401, 'REFRESH_TOKEN_MISSING');
@@ -280,4 +378,7 @@ export {
   verifyRefreshToken,
   verifyEmail,
   resendVerificationCode,
+  requestPasswordReset,
+  verifyResetCode,
+  resetPassword,
 };

@@ -8,6 +8,9 @@ import {
   signTokens,
   verifyEmail,
   resendVerificationCode,
+  requestPasswordReset,
+  verifyResetCode,
+  resetPassword,
 } from '../services/auth.service.js';
 import { activateLink } from '../services/contractorLink.service.js';
 import {
@@ -222,6 +225,39 @@ const resendVerificationHandler = async (req, res, next) => {
   }
 };
 
+const requestPasswordResetHandler = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const result = await requestPasswordReset(email);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const verifyResetCodeHandler = async (req, res, next) => {
+  try {
+    const { email, code } = req.body;
+    const result = await verifyResetCode(email, code);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const resetPasswordHandler = async (req, res, next) => {
+  try {
+    const { email, resetToken, newPassword } = req.body;
+    const result = await resetPassword(email, resetToken, newPassword);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export {
   clearAuthCookies,
   getInviteTokenMeta,
@@ -237,4 +273,7 @@ export {
   setAuthCookies,
   verifyEmailHandler,
   resendVerificationHandler,
+  requestPasswordResetHandler,
+  verifyResetCodeHandler,
+  resetPasswordHandler,
 };
