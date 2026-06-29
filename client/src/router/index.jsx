@@ -6,6 +6,9 @@ import Login from '@pages/auth/Login';
 import Register from '@pages/auth/Register';
 import InviteRegister from '@pages/auth/InviteRegister';
 import VerifyEmail from '@pages/auth/VerifyEmail';
+import ForgotPassword from '@pages/auth/ForgotPassword';
+import VerifyResetCode from '@pages/auth/VerifyResetCode';
+import ResetPassword from '@pages/auth/ResetPassword';
 import OAuthCallback from '@pages/auth/OAuthCallback';
 import Dashboard from '@pages/app/Dashboard';
 import ProtectedRoute from './ProtectedRoute';
@@ -74,6 +77,18 @@ const router = createBrowserRouter([
       {
         path: '/verify-email',
         element: <VerifyEmail />,
+      },
+      {
+        path: '/forgot-password',
+        element: <ForgotPassword />,
+      },
+      {
+        path: '/verify-reset-code',
+        element: <VerifyResetCode />,
+      },
+      {
+        path: '/reset-password',
+        element: <ResetPassword />,
       },
       {
         element: <ProtectedRoute />,
