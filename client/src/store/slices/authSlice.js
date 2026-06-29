@@ -7,6 +7,9 @@ import {
   registerWithInvite as registerWithInviteApi,
   verifyEmail as verifyEmailApi,
   resendVerificationCode as resendVerificationApi,
+  requestPasswordReset as requestPasswordResetApi,
+  verifyResetCode as verifyResetCodeApi,
+  resetPassword as resetPasswordApi,
 } from '@services/auth.api';
 
 const extractErrorMessage = (error, fallback) =>
@@ -89,6 +92,42 @@ export const resendVerification = createAsyncThunk(
   }
 );
 
+export const requestPasswordReset = createAsyncThunk(
+  'auth/requestPasswordReset',
+  async (email, { rejectWithValue }) => {
+    try {
+      const data = await requestPasswordResetApi(email);
+      return data;
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Unable to request password reset'));
+    }
+  }
+);
+
+export const verifyResetCode = createAsyncThunk(
+  'auth/verifyResetCode',
+  async ({ email, code }, { rejectWithValue }) => {
+    try {
+      const data = await verifyResetCodeApi(email, code);
+      return data;
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Unable to verify reset code'));
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async ({ email, resetToken, newPassword }, { rejectWithValue }) => {
+    try {
+      const data = await resetPasswordApi(email, resetToken, newPassword);
+      return data;
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Unable to reset password'));
+    }
+  }
+);
+
 export const fetchCurrentUser = createAsyncThunk(
   'auth/fetchCurrentUser',
   async (_payload, { rejectWithValue }) => {
@@ -162,6 +201,23 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(resendVerification.rejected, fail)
+      .addCase(requestPasswordReset.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(requestPasswordReset.fulfilled, (state) => {
+        state.error = null;
+      })
+      .addCase(requestPasswordReset.rejected, fail)
+      .addCase(verifyResetCode.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(verifyResetCode.fulfilled, (state) => {
+        state.error = null;
+      })
+      .addCase(verifyResetCode.rejected, fail)
+      .addCase(resetPassword.pending, startLoading)
+      .addCase(resetPassword.fulfilled, succeedWithoutAuth)
+      .addCase(resetPassword.rejected, fail)
       .addCase(fetchCurrentUser.pending, startLoading)
       .addCase(fetchCurrentUser.fulfilled, succeedWithUser)
       .addCase(fetchCurrentUser.rejected, (state, action) => {
