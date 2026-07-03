@@ -12,6 +12,7 @@ import {
   CTA,
   FOOTER,
 } from '@constants/landingContent';
+import Button from '@components/ui/Button';
 
 /* ═══════════════════════════════════════════════════════════════════════
    ANIMATION VARIANTS
@@ -133,11 +134,10 @@ function Navbar() {
               {link.label}
             </a>
           ))}
-          <Link
-            to="/register"
-            className="inline-flex items-center gap-2 font-heading text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 px-5 py-2.5 rounded-full transition-all duration-200 hover:shadow-lg hover:shadow-primary-500/20"
-          >
-            Get Started
+          <Link to="/register">
+            <Button variant="primary" className="!w-auto !px-5 !py-2.5 !text-sm">
+              Get Started
+            </Button>
           </Link>
         </div>
 
@@ -183,12 +183,10 @@ function Navbar() {
                   </Link>
                 )
               )}
-              <Link
-                to="/register"
-                onClick={() => setMobileOpen(false)}
-                className="mt-2 inline-flex items-center justify-center font-heading text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 px-5 py-2.5 rounded-full transition-all duration-200"
-              >
-                Get Started
+              <Link to="/register" onClick={() => setMobileOpen(false)}>
+                <Button variant="primary" className="!w-auto !px-5 !py-2.5 !text-sm mt-2">
+                  Get Started
+                </Button>
               </Link>
             </div>
           </motion.div>
@@ -269,23 +267,23 @@ function Hero() {
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <motion.div whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.98 }}>
-            <Link
-              to={HERO.primaryCta.href}
-              className="inline-flex items-center gap-2 font-heading text-base font-semibold text-white bg-primary-500 hover:bg-primary-600 px-8 py-3.5 rounded-full shadow-lg shadow-primary-500/25 transition-colors duration-200"
-            >
-              {HERO.primaryCta.label}
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
+            <Link to={HERO.primaryCta.href}>
+              <Button variant="primary" className="!w-auto !px-8 !py-3.5 !text-base">
+                {HERO.primaryCta.label}
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Button>
             </Link>
           </motion.div>
           <motion.a
             href={HERO.secondaryCta.href}
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.98 }}
-            className="inline-flex items-center gap-2 font-heading text-base font-semibold text-charcoal-700 bg-white hover:bg-charcoal-50 border border-charcoal-200 px-8 py-3.5 rounded-full transition-colors duration-200"
           >
-            {HERO.secondaryCta.label}
+            <Button variant="secondary" className="!w-auto !px-8 !py-3.5 !text-base">
+              {HERO.secondaryCta.label}
+            </Button>
           </motion.a>
         </motion.div>
 
@@ -899,14 +897,13 @@ function CtaSection() {
             </motion.p>
             <motion.div variants={fadeUp} custom={2} className="mt-10">
               <motion.div whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.98 }}>
-                <Link
-                  to={CTA.buttonHref}
-                  className="inline-flex items-center gap-2 font-heading text-base font-semibold text-charcoal-950 bg-white hover:bg-charcoal-50 px-8 py-3.5 rounded-full shadow-lg transition-colors duration-200"
-                >
-                  {CTA.buttonLabel}
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
+                <Link to={CTA.buttonHref}>
+                  <Button variant="secondary" className="!w-auto !px-8 !py-3.5 !text-base">
+                    {CTA.buttonLabel}
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Button>
                 </Link>
               </motion.div>
             </motion.div>
