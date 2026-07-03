@@ -13,6 +13,7 @@ import {
   FOOTER,
 } from '@constants/landingContent';
 import Button from '@components/ui/Button';
+import useScrollToSection from '@hooks/useScrollToSection';
 
 /* ═══════════════════════════════════════════════════════════════════════
    ANIMATION VARIANTS
@@ -94,6 +95,7 @@ function Section({ children, className = '', id }) {
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const scrollToSection = useScrollToSection();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -114,26 +116,47 @@ function Navbar() {
     >
       <div className="mx-auto max-w-7xl flex items-center justify-between px-6 py-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 group">
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="flex items-center gap-2 group"
+        >
           <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
             <span className="text-white font-heading font-bold text-sm">F</span>
           </div>
           <span className="font-heading font-bold text-xl text-charcoal-950 tracking-tight">
             Fixra
           </span>
-        </Link>
+        </a>
 
-        {/* Desktop links */}
+        {/* Center nav links */}
         <div className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
+          {NAV_LINKS.filter((link) => !link.href.startsWith('/')).map((link) => (
             <a
               key={link.label}
-              href={link.href}
+              href={`#${link.href}`}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection(link.href);
+              }}
               className="font-heading text-sm font-medium text-charcoal-600 hover:text-primary-500 transition-colors duration-200"
             >
               {link.label}
             </a>
           ))}
+        </div>
+
+        {/* Right side - Auth buttons */}
+        <div className="hidden md:flex items-center gap-4">
+          <Link
+            to="/login"
+            className="font-heading text-sm font-medium text-charcoal-600 hover:text-primary-500 transition-colors duration-200"
+          >
+            Login
+          </Link>
           <Link to="/register">
             <Button variant="primary" className="!w-auto !px-5 !py-2.5 !text-sm">
               Get Started
@@ -163,11 +186,15 @@ function Navbar() {
           >
             <div className="flex flex-col gap-1 px-6 py-4">
               {NAV_LINKS.map((link) =>
-                link.href.startsWith('#') ? (
+                !link.href.startsWith('/') ? (
                   <a
                     key={link.label}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
+                    href={`#${link.href}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection(link.href);
+                      setMobileOpen(false);
+                    }}
                     className="font-heading text-sm font-medium text-charcoal-700 hover:text-primary-500 py-2.5 transition-colors"
                   >
                     {link.label}
@@ -201,6 +228,8 @@ function Navbar() {
    ═══════════════════════════════════════════════════════════════════════ */
 
 function Hero() {
+  const scrollToSection = useScrollToSection();
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-hero-mesh">
       {/* Decorative shapes */}
@@ -277,7 +306,11 @@ function Hero() {
             </Link>
           </motion.div>
           <motion.a
-            href={HERO.secondaryCta.href}
+            href={`#${HERO.secondaryCta.href}`}
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection(HERO.secondaryCta.href);
+            }}
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -919,6 +952,15 @@ function CtaSection() {
    ═══════════════════════════════════════════════════════════════════════ */
 
 function Footer() {
+  const scrollToSection = useScrollToSection();
+
+  const handleFooterLinkClick = (e, href) => {
+    if (!href.startsWith('/')) {
+      e.preventDefault();
+      scrollToSection(href);
+    }
+  };
+
   return (
     <footer className="bg-charcoal-950 pt-16 pb-8">
       <div className="mx-auto max-w-7xl px-6">
@@ -948,7 +990,8 @@ function Footer() {
                 {group.items.map((link) => (
                   <li key={link.label}>
                     <a
-                      href={link.href}
+                      href={`#${link.href}`}
+                      onClick={(e) => handleFooterLinkClick(e, link.href)}
                       className="font-body text-sm text-charcoal-400 hover:text-white transition-colors duration-200"
                     >
                       {link.label}
