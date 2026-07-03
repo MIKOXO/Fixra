@@ -14,8 +14,10 @@ import {
 /* ──────────────────────────────── NAV ──────────────────────────────── */
 
 export const NAV_LINKS = [
-  { label: 'Features', href: '#features' },
-  { label: 'How It Works', href: '#how-it-works' },
+  { label: 'Why Fixra', href: 'problem' },
+  { label: 'How It Works', href: 'how-it-works' },
+  { label: 'Who It\'s For', href: 'roles' },
+  { label: 'Features', href: 'features' },
   { label: 'Login', href: '/login' },
 ];
 
@@ -26,7 +28,7 @@ export const HERO = {
   subheadline:
     'Fixra replaces the chaos of scattered messages, missed calls, and zero accountability with structured tickets, real-time tracking, and a full audit trail — from report to resolution.',
   primaryCta: { label: 'Get Started', href: '/register' },
-  secondaryCta: { label: 'See How It Works', href: '#how-it-works' },
+  secondaryCta: { label: 'See How It Works', href: 'how-it-works' },
 };
 
 /* ──────────────────────────── PROBLEM ─────────────────────────────── */
@@ -195,8 +197,8 @@ export const FOOTER = {
     {
       heading: 'Product',
       items: [
-        { label: 'Features', href: '#features' },
-        { label: 'How It Works', href: '#how-it-works' },
+        { label: 'Features', href: 'features' },
+        { label: 'How It Works', href: 'how-it-works' },
         { label: 'Pricing', href: '#' },
       ],
     },
