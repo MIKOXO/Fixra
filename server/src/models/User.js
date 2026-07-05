@@ -58,6 +58,14 @@ const userSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    loginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockoutUntil: {
+      type: Date,
+      default: null,
+    },
     fcmToken: {
       type: String,
       default: null,
