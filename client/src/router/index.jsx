@@ -10,7 +10,11 @@ import ForgotPassword from '@pages/auth/ForgotPassword';
 import VerifyResetCode from '@pages/auth/VerifyResetCode';
 import ResetPassword from '@pages/auth/ResetPassword';
 import OAuthCallback from '@pages/auth/OAuthCallback';
-import Dashboard from '@pages/app/Dashboard';
+import LandlordDashboard from '@pages/dashboard/Landlord/Home';
+import TenantDashboard from '@pages/dashboard/Tenant/Home';
+import TechnicianDashboard from '@pages/dashboard/Technician/Home';
+import ContractorDashboard from '@pages/dashboard/Contractor/Home';
+import SuperAdminDashboard from '@pages/dashboard/SuperAdmin/Home';
 import ProtectedRoute from './ProtectedRoute';
 
 const RootLayout = () => {
@@ -94,8 +98,24 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           {
-            path: '/app/:section?',
-            element: <Dashboard />,
+            path: '/landlord',
+            element: <LandlordDashboard />,
+          },
+          {
+            path: '/tenant',
+            element: <TenantDashboard />,
+          },
+          {
+            path: '/technician',
+            element: <TechnicianDashboard />,
+          },
+          {
+            path: '/contractor',
+            element: <ContractorDashboard />,
+          },
+          {
+            path: '/admin',
+            element: <SuperAdminDashboard />,
           },
         ],
       },
