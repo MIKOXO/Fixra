@@ -1,17 +1,20 @@
 import passport from 'passport';
 import {
   createUserWithRole,
+  hashToken,
   loginWithPassword,
   refreshUserTokens,
   registerLandlord,
   sanitizeUser,
   signTokens,
+  storeRefreshToken,
   verifyEmail,
   resendVerificationCode,
   requestPasswordReset,
   verifyResetCode,
   resetPassword,
 } from '../services/auth.service.js';
+import RefreshToken from '../models/RefreshToken.js';
 import { activateLink } from '../services/contractorLink.service.js';
 import {
   buildProfile, validateToken, consumeToken
@@ -65,6 +68,7 @@ const login = async (req, res, next) => {
     const user = await loginWithPassword({ email, password });
     const tokens = signTokens(user);
 
+    await storeRefreshToken(user._id, tokens.refreshToken);
     setAuthCookies(res, tokens);
 
     return res.status(200).json({
@@ -92,7 +96,12 @@ const refresh = async (req, res, next) => {
   }
 };
 
-const logout = (_req, res) => {
+const logout = async (req, res) => {
+  const refreshToken = req.cookies?.refreshToken;
+  if (refreshToken) {
+    const tokenHash = hashToken(refreshToken);
+    await RefreshToken.deleteOne({ tokenHash });
+  }
   clearAuthCookies(res);
   return res.status(200).json({ message: 'Logged out successfully' });
 };
@@ -131,6 +140,8 @@ const googleCallback = async (req, res, next) => {
   try {
     const user = req.user;
     const tokens = signTokens(user);
+
+    await storeRefreshToken(user._id, tokens.refreshToken);
     setAuthCookies(res, tokens);
 
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
@@ -200,6 +211,7 @@ const verifyEmailHandler = async (req, res, next) => {
     const user = await verifyEmail(email, code);
     const tokens = signTokens(user);
 
+    await storeRefreshToken(user._id, tokens.refreshToken);
     setAuthCookies(res, tokens);
 
     return res.status(200).json({
