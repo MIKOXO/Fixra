@@ -16,6 +16,7 @@ import TechnicianDashboard from '@pages/dashboard/Technician/Home';
 import ContractorDashboard from '@pages/dashboard/Contractor/Home';
 import SuperAdminDashboard from '@pages/dashboard/SuperAdmin/Home';
 import ProtectedRoute from './ProtectedRoute';
+import RoleGuard from './RoleGuard';
 
 const RootLayout = () => {
   const navigate = useNavigate();
@@ -99,23 +100,43 @@ const router = createBrowserRouter([
         children: [
           {
             path: '/landlord',
-            element: <LandlordDashboard />,
+            element: (
+              <RoleGuard requiredRole="LANDLORD">
+                <LandlordDashboard />
+              </RoleGuard>
+            ),
           },
           {
             path: '/tenant',
-            element: <TenantDashboard />,
+            element: (
+              <RoleGuard requiredRole="TENANT">
+                <TenantDashboard />
+              </RoleGuard>
+            ),
           },
           {
             path: '/technician',
-            element: <TechnicianDashboard />,
+            element: (
+              <RoleGuard requiredRole="TECHNICIAN">
+                <TechnicianDashboard />
+              </RoleGuard>
+            ),
           },
           {
             path: '/contractor',
-            element: <ContractorDashboard />,
+            element: (
+              <RoleGuard requiredRole="CONTRACTOR">
+                <ContractorDashboard />
+              </RoleGuard>
+            ),
           },
           {
             path: '/admin',
-            element: <SuperAdminDashboard />,
+            element: (
+              <RoleGuard requiredRole="SUPER_ADMIN">
+                <SuperAdminDashboard />
+              </RoleGuard>
+            ),
           },
         ],
       },
