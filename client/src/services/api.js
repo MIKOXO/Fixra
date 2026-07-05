@@ -72,11 +72,17 @@ api.interceptors.response.use(
       }
     }
 
+    const getErrorMessage = (err) => {
+      const data = err.response?.data;
+      if (data) {
+        if (typeof data === 'string') return data;
+        if (typeof data === 'object' && data?.message) return data.message;
+      }
+      return err.message || 'An unexpected error occurred';
+    };
+
     return Promise.reject({
-      message:
-        error.response?.data?.message ||
-        error.message ||
-        'An unexpected error occurred',
+      message: getErrorMessage(error),
       code: error.response?.data?.code || 'REQUEST_ERROR',
       status: error.response?.status || 500,
       issues: error.response?.data?.issues || [],
