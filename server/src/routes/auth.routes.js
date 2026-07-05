@@ -3,6 +3,14 @@ import passport from 'passport';
 import authMiddleware from '../middleware/auth.middleware.js';
 import validateRequest from '../middleware/validate.middleware.js';
 import {
+  loginLimiter,
+  loginIpLimiter,
+  registerLimiter,
+  forgotPasswordLimiter,
+  verifyEmailLimiter,
+  resendVerificationLimiter,
+} from '../config/rateLimit.js';
+import {
   googleAuth,
   googleCallback,
   getInviteTokenMeta,
@@ -38,18 +46,19 @@ const googleCallbackAuth = (req, res, next) => {
   })(req, res, next);
 };
 
-router.post('/register', validateRequest({ body: registerSchema }), register);
+router.post('/register', registerLimiter, validateRequest({ body: registerSchema }), register);
 router.post(
   '/register/invite',
+  registerLimiter,
   validateRequest({ body: registerWithInviteSchema }),
   registerWithInvite
 );
-router.post('/login', validateRequest({ body: loginSchema }), login);
+router.post('/login', loginIpLimiter, loginLimiter, validateRequest({ body: loginSchema }), login);
 router.get('/invite', validateRequest({ query: inviteTokenQuerySchema }), getInviteTokenMeta);
 router.post('/refresh', refresh);
-router.post('/verify-email', validateRequest({ body: verifyEmailSchema }), verifyEmailHandler);
-router.post('/resend-verification', validateRequest({ body: resendVerificationSchema }), resendVerificationHandler);
-router.post('/forgot-password', validateRequest({ body: requestPasswordResetSchema }), requestPasswordResetHandler);
+router.post('/verify-email', verifyEmailLimiter, validateRequest({ body: verifyEmailSchema }), verifyEmailHandler);
+router.post('/resend-verification', resendVerificationLimiter, validateRequest({ body: resendVerificationSchema }), resendVerificationHandler);
+router.post('/forgot-password', forgotPasswordLimiter, validateRequest({ body: requestPasswordResetSchema }), requestPasswordResetHandler);
 router.post('/verify-reset-code', validateRequest({ body: verifyResetCodeSchema }), verifyResetCodeHandler);
 router.post('/reset-password', validateRequest({ body: resetPasswordSchema }), resetPasswordHandler);
 router.post('/logout', logout);
