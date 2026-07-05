@@ -1,12 +1,15 @@
+import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import RefreshToken from '../models/RefreshToken.js';
 import { AppError } from '../middleware/error.middleware.js';
 import { sendEmail } from './email.service.js';
 import { verificationCodeTemplate, passwordResetTemplate } from '../utils/emailTemplates.js';
 
 const LOGIN_LOCKOUT_THRESHOLD = 5;
 const LOGIN_LOCKOUT_DURATION_MS = 15 * 60 * 1000;
+const REFRESH_TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
 const accessTokenTtl = process.env.JWT_EXPIRES_IN || '15m';
 const refreshTokenTtl = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
@@ -46,6 +49,16 @@ const signTokens = (user) => {
     accessToken: signAccessToken(payload),
     refreshToken: signRefreshToken(payload),
   };
+};
+
+const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
+
+const storeRefreshToken = async (userId, refreshToken) => {
+  await RefreshToken.create({
+    userId,
+    tokenHash: hashToken(refreshToken),
+    expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
+  });
 };
 
 const hashPassword = async (password) => bcrypt.hash(password, 12);
@@ -398,9 +411,30 @@ const refreshUserTokens = async (refreshToken) => {
     await user.save();
   }
 
+  const oldHash = hashToken(refreshToken);
+  const storedToken = await RefreshToken.findOne({ tokenHash: oldHash });
+
+  if (!storedToken) {
+    const userHasTokens = await RefreshToken.exists({ userId: user._id });
+
+    if (userHasTokens) {
+      await RefreshToken.deleteMany({ userId: user._id });
+      throw new AppError(
+        'Refresh token reuse detected. All sessions revoked. Please log in again.',
+        401,
+        'REUSE_DETECTED'
+      );
+    }
+  } else {
+    await RefreshToken.deleteOne({ _id: storedToken._id });
+  }
+
+  const tokens = signTokens(user);
+  await storeRefreshToken(user._id, tokens.refreshToken);
+
   return {
     user,
-    tokens: signTokens(user),
+    tokens,
   };
 };
 
@@ -409,6 +443,7 @@ export {
   createUserWithRole,
   findOrCreateGoogleUser,
   hashPassword,
+  hashToken,
   loginWithPassword,
   registerLandlord,
   sanitizeUser,
@@ -416,6 +451,7 @@ export {
   signRefreshToken,
   refreshUserTokens,
   signTokens,
+  storeRefreshToken,
   verifyRefreshToken,
   verifyEmail,
   resendVerificationCode,
