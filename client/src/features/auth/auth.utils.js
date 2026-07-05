@@ -1,12 +1,12 @@
 const dashboardRouteMap = {
-  LANDLORD: '/app/landlord',
-  TENANT: '/app/tenant',
-  TECHNICIAN: '/app/technician',
-  CONTRACTOR: '/app/contractor',
-  SUPER_ADMIN: '/app/admin',
+  LANDLORD: '/landlord',
+  TENANT: '/tenant',
+  TECHNICIAN: '/technician',
+  CONTRACTOR: '/contractor',
+  SUPER_ADMIN: '/admin',
 };
 
-const getDashboardPathForRole = (role) => dashboardRouteMap[role] || '/app';
+const getDashboardPathForRole = (role) => dashboardRouteMap[role] || '/';
 
 const getRoleLabel = (role) => {
   if (!role) {
