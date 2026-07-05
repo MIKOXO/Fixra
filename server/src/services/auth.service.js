@@ -5,6 +5,9 @@ import { AppError } from '../middleware/error.middleware.js';
 import { sendEmail } from './email.service.js';
 import { verificationCodeTemplate, passwordResetTemplate } from '../utils/emailTemplates.js';
 
+const LOGIN_LOCKOUT_THRESHOLD = 5;
+const LOGIN_LOCKOUT_DURATION_MS = 15 * 60 * 1000;
+
 const accessTokenTtl = process.env.JWT_EXPIRES_IN || '15m';
 const refreshTokenTtl = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 const verificationCodeExpiryMinutes = parseInt(process.env.VERIFICATION_CODE_EXPIRES_IN, 10) || 10;
@@ -136,6 +139,21 @@ const loginWithPassword = async ({ email, password }) => {
     throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
   }
 
+  if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+    const remaining = Math.ceil((user.lockoutUntil - new Date()) / 1000 / 60);
+    throw new AppError(
+      `Account locked. Too many failed attempts. Try again in ${remaining} minute${remaining === 1 ? '' : 's'}.`,
+      423,
+      'ACCOUNT_LOCKED'
+    );
+  }
+
+  if (user.lockoutUntil && user.lockoutUntil <= new Date()) {
+    user.loginAttempts = 0;
+    user.lockoutUntil = null;
+    await user.save();
+  }
+
   if (!user.isActive) {
     throw new AppError('Account deactivated', 403, 'ACCOUNT_DEACTIVATED');
   }
@@ -147,7 +165,20 @@ const loginWithPassword = async ({ email, password }) => {
   const isMatch = await comparePassword(password, user.passwordHash);
 
   if (!isMatch) {
+    user.loginAttempts = (user.loginAttempts || 0) + 1;
+
+    if (user.loginAttempts >= LOGIN_LOCKOUT_THRESHOLD) {
+      user.lockoutUntil = new Date(Date.now() + LOGIN_LOCKOUT_DURATION_MS);
+    }
+
+    await user.save();
     throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+  }
+
+  if (user.loginAttempts || user.lockoutUntil) {
+    user.loginAttempts = 0;
+    user.lockoutUntil = null;
+    await user.save();
   }
 
   return user;
@@ -355,6 +386,16 @@ const refreshUserTokens = async (refreshToken) => {
 
   if (!user.isActive) {
     throw new AppError('Account deactivated', 403, 'ACCOUNT_DEACTIVATED');
+  }
+
+  if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+    throw new AppError('Account locked. Too many failed attempts.', 423, 'ACCOUNT_LOCKED');
+  }
+
+  if (user.lockoutUntil && user.lockoutUntil <= new Date()) {
+    user.loginAttempts = 0;
+    user.lockoutUntil = null;
+    await user.save();
   }
 
   return {
