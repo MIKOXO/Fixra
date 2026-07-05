@@ -1,8 +1,8 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
+import { globalLimiter } from './config/rateLimit.js';
 import passport from 'passport';
 import configurePassport from './config/passport.js';
 import authRoutes from './routes/auth.routes.js';
@@ -36,12 +36,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 200,
-  })
-);
+app.use(globalLimiter);
 
 app.get('/health', (_req, res) => {
   res.status(200).json({
