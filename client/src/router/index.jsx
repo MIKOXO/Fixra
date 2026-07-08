@@ -1,5 +1,11 @@
 import { useEffect } from 'react';
-import { createBrowserRouter, Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  Link,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import { setOnAuthExpired } from '@services/api';
 import Landing from '@pages/public/Landing';
 import Login from '@pages/auth/Login';
@@ -10,11 +16,18 @@ import ForgotPassword from '@pages/auth/ForgotPassword';
 import VerifyResetCode from '@pages/auth/VerifyResetCode';
 import ResetPassword from '@pages/auth/ResetPassword';
 import OAuthCallback from '@pages/auth/OAuthCallback';
-import LandlordDashboard from '@pages/dashboard/Landlord/Home';
+import DashboardLayout from '@components/layout/DashboardLayout';
+import LandlordHome from '@pages/dashboard/Landlord/Home';
+import LandlordProperties from '@pages/dashboard/Landlord/Properties';
+import LandlordTickets from '@pages/dashboard/Landlord/Tickets';
+import LandlordContractors from '@pages/dashboard/Landlord/Contractors';
+import LandlordAnalytics from '@pages/dashboard/Landlord/Analytics';
+import LandlordSettings from '@pages/dashboard/Landlord/Settings';
 import TenantDashboard from '@pages/dashboard/Tenant/Home';
 import TechnicianDashboard from '@pages/dashboard/Technician/Home';
 import ContractorDashboard from '@pages/dashboard/Contractor/Home';
 import SuperAdminDashboard from '@pages/dashboard/SuperAdmin/Home';
+import { landlordNav } from '@constants/navItems';
 import ProtectedRoute from './ProtectedRoute';
 import RoleGuard from './RoleGuard';
 
@@ -34,21 +47,20 @@ const RootLayout = () => {
 };
 
 const NotFound = () => (
-  <div className="flex min-h-screen items-center justify-center bg-surface-warm px-6 text-center">
-    <div className="max-w-lg">
-      <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-primary-500">
+  <div className='flex min-h-screen items-center justify-center bg-surface-warm px-6 text-center'>
+    <div className='max-w-lg'>
+      <p className='font-heading text-xs font-semibold uppercase tracking-[0.35em] text-primary-500'>
         404
       </p>
-      <h1 className="mt-4 font-heading text-4xl font-bold text-charcoal-950">
+      <h1 className='mt-4 font-heading text-4xl font-bold text-charcoal-950'>
         Page not found
       </h1>
-      <p className="mt-3 text-charcoal-600">
+      <p className='mt-3 text-charcoal-600'>
         The page you are looking for does not exist.
       </p>
       <Link
-        to="/"
-        className="mt-8 inline-flex items-center justify-center rounded-full bg-primary-500 px-6 py-3 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600"
-      >
+        to='/'
+        className='mt-8 inline-flex items-center justify-center rounded-full bg-primary-500 px-6 py-3 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600'>
         Return home
       </Link>
     </div>
@@ -101,15 +113,23 @@ const router = createBrowserRouter([
           {
             path: '/landlord',
             element: (
-              <RoleGuard requiredRole="LANDLORD">
-                <LandlordDashboard />
+              <RoleGuard requiredRole='LANDLORD'>
+                <DashboardLayout navItems={landlordNav} role='Landlord' />
               </RoleGuard>
             ),
+            children: [
+              { index: true, element: <LandlordHome /> },
+              { path: 'properties', element: <LandlordProperties /> },
+              { path: 'tickets', element: <LandlordTickets /> },
+              { path: 'contractors', element: <LandlordContractors /> },
+              { path: 'analytics', element: <LandlordAnalytics /> },
+              { path: 'settings', element: <LandlordSettings /> },
+            ],
           },
           {
             path: '/tenant',
             element: (
-              <RoleGuard requiredRole="TENANT">
+              <RoleGuard requiredRole='TENANT'>
                 <TenantDashboard />
               </RoleGuard>
             ),
@@ -117,7 +137,7 @@ const router = createBrowserRouter([
           {
             path: '/technician',
             element: (
-              <RoleGuard requiredRole="TECHNICIAN">
+              <RoleGuard requiredRole='TECHNICIAN'>
                 <TechnicianDashboard />
               </RoleGuard>
             ),
@@ -125,7 +145,7 @@ const router = createBrowserRouter([
           {
             path: '/contractor',
             element: (
-              <RoleGuard requiredRole="CONTRACTOR">
+              <RoleGuard requiredRole='CONTRACTOR'>
                 <ContractorDashboard />
               </RoleGuard>
             ),
@@ -133,7 +153,7 @@ const router = createBrowserRouter([
           {
             path: '/admin',
             element: (
-              <RoleGuard requiredRole="SUPER_ADMIN">
+              <RoleGuard requiredRole='SUPER_ADMIN'>
                 <SuperAdminDashboard />
               </RoleGuard>
             ),
