@@ -1,15 +1,274 @@
-const Properties = () => {
+import { useEffect, useMemo, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { MdApartment, MdAdd, MdVisibility, MdEdit, MdDelete, MdPersonAdd } from 'react-icons/md';
+import Skeleton from '@components/ui/Skeleton';
+import DeleteConfirmModal from '@components/ui/DeleteConfirmModal';
+import { fetchProperties, deleteProperty, clearPropertyError } from '@store/slices/propertySlice';
+import { fetchTickets } from '@store/slices/ticketSlice';
+import AddPropertyModal from '@features/properties/AddPropertyModal';
+import EditPropertyModal from '@features/properties/EditPropertyModal';
+import AddUnitModal from '@features/properties/AddUnitModal';
+import InviteTenantModal from '@features/properties/InviteTenantModal';
+
+function CardSkeleton() {
   return (
-    <div className="px-8 py-10">
-      <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-primary-500">
-        Landlord
-      </p>
-      <h1 className="mt-3 font-heading text-3xl font-bold text-charcoal-950">
-        Properties
-      </h1>
-      <p className="mt-2 text-charcoal-500">
-        Manage your rental properties here.
-      </p>
+    <div className="rounded-2xl border border-charcoal-200/70 bg-white p-5 shadow-sm">
+      <Skeleton className="h-5 w-2/3 rounded" />
+      <Skeleton className="mt-2 h-3 w-1/2 rounded" />
+      <div className="mt-4 flex gap-4">
+        <Skeleton className="h-4 w-16 rounded" />
+        <Skeleton className="h-4 w-20 rounded" />
+      </div>
+      <div className="mt-4 flex gap-2">
+        <Skeleton className="h-9 flex-1 rounded-xl" />
+        <Skeleton className="h-9 w-20 rounded-xl" />
+        <Skeleton className="h-9 w-20 rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
+const Properties = () => {
+  const dispatch = useDispatch();
+  const { properties, isLoading, error } = useSelector((s) => s.properties);
+  const tickets = useSelector((s) => s.tickets.tickets);
+
+  const [expandedId, setExpandedId] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editProperty, setEditProperty] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [addUnitFor, setAddUnitFor] = useState(null);
+  const [inviteTarget, setInviteTarget] = useState(null);
+
+  useEffect(() => {
+    dispatch(fetchProperties());
+    dispatch(fetchTickets());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      const t = setTimeout(() => dispatch(clearPropertyError()), 6000);
+      return () => clearTimeout(t);
+    }
+  }, [error, dispatch]);
+
+  const openTicketCounts = useMemo(() => {
+    const map = {};
+    (tickets ?? []).forEach((t) => {
+      if (!['RESOLVED', 'CLOSED'].includes(t.status)) {
+        const pid = t.propertyId?._id || t.propertyId;
+        if (pid) map[pid] = (map[pid] || 0) + 1;
+      }
+    });
+    return map;
+  }, [tickets]);
+
+  const toggleExpand = (id) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  return (
+    <div className="px-6 py-8">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-primary-500">
+            Landlord
+          </p>
+          <h1 className="mt-1 font-heading text-3xl font-bold text-charcoal-950">Properties</h1>
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-5 py-2.5 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+        >
+          <MdAdd className="text-lg" />
+          Add Property
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
+      ) : (properties ?? []).length === 0 ? (
+        <div className="mt-16 flex flex-col items-center justify-center text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-50">
+            <MdApartment className="text-3xl text-primary-400" />
+          </div>
+          <h2 className="mt-4 font-heading text-xl font-bold text-charcoal-950">No properties yet</h2>
+          <p className="mt-1 font-body text-sm text-charcoal-500">
+            Add your first property to get started.
+          </p>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary-500 px-5 py-2.5 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+          >
+            <MdAdd className="text-lg" />
+            Add Property
+          </button>
+        </div>
+      ) : (
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {(properties ?? []).map((property) => {
+            const pid = property._id || property.id;
+            const unitList = property.units ?? [];
+            const openCount = openTicketCounts[pid] || 0;
+            const addressStr = [property.address?.street, property.address?.city, property.address?.state]
+              .filter(Boolean)
+              .join(', ');
+            const isExpanded = expandedId === pid;
+
+            return (
+              <div key={pid} className="rounded-2xl border border-charcoal-200/70 bg-white shadow-sm">
+                <div className="p-5">
+                  <h3 className="font-heading text-lg font-bold text-charcoal-950">
+                    {property.name}
+                  </h3>
+                  {addressStr && (
+                    <p className="mt-0.5 font-body text-sm text-charcoal-500">{addressStr}</p>
+                  )}
+
+                  <div className="mt-4 flex items-center gap-4 font-body text-sm text-charcoal-600">
+                    <span>
+                      <span className="font-semibold text-charcoal-900">{unitList.length}</span>{' '}
+                      {unitList.length === 1 ? 'unit' : 'units'}
+                    </span>
+                    <span>
+                      <span
+                        className={`font-semibold ${
+                          openCount === 0 ? 'text-sage-600' : 'text-primary-500'
+                        }`}
+                      >
+                        {openCount}
+                      </span>{' '}
+                      open
+                    </span>
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => toggleExpand(pid)}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-charcoal-200/90 bg-white px-3 py-2 font-heading text-xs font-semibold text-charcoal-700 transition-colors hover:bg-charcoal-50"
+                    >
+                      <MdVisibility className="text-sm" />
+                      {isExpanded ? 'Hide Units' : 'View Units'}
+                    </button>
+                    <button
+                      onClick={() => setEditProperty(property)}
+                      className="flex items-center gap-1.5 rounded-xl border border-charcoal-200/90 bg-white px-3 py-2 font-heading text-xs font-semibold text-charcoal-700 transition-colors hover:bg-charcoal-50"
+                    >
+                      <MdEdit className="text-sm" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(property)}
+                      className="flex items-center gap-1.5 rounded-xl border border-charcoal-200/90 bg-white px-3 py-2 font-heading text-xs font-semibold text-primary-500 transition-colors hover:bg-primary-50"
+                    >
+                      <MdDelete className="text-sm" />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
+                {isExpanded && (
+                  <div className="border-t border-charcoal-100 px-5 pb-5 pt-4">
+                    <div className="flex items-center gap-4 pb-2 font-body text-[11px] font-semibold uppercase tracking-[0.05em] text-charcoal-400">
+                      <span className="flex-1">Unit</span>
+                      <span className="w-20">Status</span>
+                      <span className="flex-1">Tenant</span>
+                      <span className="w-24" />
+                    </div>
+
+                    {unitList.length === 0 ? (
+                      <p className="py-3 font-body text-sm text-charcoal-400">No units added yet.</p>
+                    ) : (
+                      <div className="divide-y divide-charcoal-50">
+                        {unitList.map((unit) => (
+                          <div
+                            key={unit._id || unit.unitNumber}
+                            className="flex items-center gap-4 py-2.5 font-body text-sm"
+                          >
+                            <span className="flex-1 font-medium text-charcoal-950">
+                              {unit.unitNumber}
+                            </span>
+                            <span className="w-20">
+                              <span
+                                className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                  unit.isOccupied
+                                    ? 'bg-sage-100 text-sage-700'
+                                    : 'bg-charcoal-100 text-charcoal-500'
+                                }`}
+                              >
+                                {unit.isOccupied ? 'Occupied' : 'Vacant'}
+                              </span>
+                            </span>
+                            <span className="flex-1 truncate text-charcoal-600">
+                              {unit.tenantId?.name || '-'}
+                            </span>
+                            {!unit.isOccupied && (
+                              <button
+                                onClick={() =>
+                                  setInviteTarget({
+                                    propertyId: pid,
+                                    unitNumber: unit.unitNumber,
+                                  })
+                                }
+                                className="flex shrink-0 items-center gap-1 rounded-lg bg-primary-50 px-2.5 py-1.5 font-heading text-[11px] font-semibold text-primary-600 transition-colors hover:bg-primary-100"
+                              >
+                                <MdPersonAdd className="text-xs" />
+                                Invite
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => setAddUnitFor(pid)}
+                      className="mt-3 inline-flex items-center gap-1.5 font-heading text-xs font-semibold text-primary-500 transition-colors hover:text-primary-600"
+                    >
+                      <MdAdd className="text-sm" />
+                      Add Unit
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <AddPropertyModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
+      <EditPropertyModal
+        isOpen={!!editProperty}
+        onClose={() => setEditProperty(null)}
+        property={editProperty}
+      />
+      <AddUnitModal
+        isOpen={!!addUnitFor}
+        onClose={() => setAddUnitFor(null)}
+        propertyId={addUnitFor}
+      />
+      <InviteTenantModal
+        isOpen={!!inviteTarget}
+        onClose={() => setInviteTarget(null)}
+        propertyId={inviteTarget?.propertyId}
+        unitNumber={inviteTarget?.unitNumber}
+      />
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete Property"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        onConfirm={() => {
+          if (deleteTarget) {
+            dispatch(deleteProperty(deleteTarget._id || deleteTarget.id));
+            setDeleteTarget(null);
+          }
+        }}
+      />
     </div>
   );
 };
