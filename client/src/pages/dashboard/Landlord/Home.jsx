@@ -17,11 +17,11 @@ import { fetchProperties } from '@store/slices/propertySlice';
 
 const STATUS_COLORS = {
   REPORTED: 'bg-amber-400/20 text-amber-700',
-  TRIAGED: 'bg-blue-400/20 text-blue-700',
-  ASSIGNED: 'bg-indigo-400/20 text-indigo-700',
-  IN_PROGRESS: 'bg-purple-400/20 text-purple-700',
-  PENDING_REVIEW: 'bg-orange-400/20 text-orange-700',
-  RESOLVED: 'bg-sage-400/20 text-sage-700',
+  TRIAGED: 'bg-primary-100 text-primary-700',
+  ASSIGNED: 'bg-sage-100 text-sage-700',
+  IN_PROGRESS: 'bg-primary-200 text-primary-800',
+  PENDING_REVIEW: 'bg-amber-100 text-amber-700',
+  RESOLVED: 'bg-sage-200 text-sage-700',
   CLOSED: 'bg-charcoal-200/50 text-charcoal-600',
 };
 
