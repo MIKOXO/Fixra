@@ -1,20 +1,28 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
   getResolutionTime as getResolutionTimeApi,
+  getTechnicianPerformance as getTechnicianPerformanceApi,
   getCostPerProperty as getCostPerPropertyApi,
   getMaintenanceFrequency as getMaintenanceFrequencyApi,
 } from '@services/analytics.api';
 
 export const fetchLandlordStats = createAsyncThunk(
   'analytics/fetchLandlordStats',
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      const [resolutionTime, costPerProperty, maintenanceFrequency] = await Promise.all([
-        getResolutionTimeApi(),
-        getCostPerPropertyApi(),
-        getMaintenanceFrequencyApi(),
-      ]);
-      return { resolutionTime: resolutionTime.data, costPerProperty: costPerProperty.data, maintenanceFrequency: maintenanceFrequency.data };
+      const [resolutionTime, technicianPerformance, costPerProperty, maintenanceFrequency] =
+        await Promise.all([
+          getResolutionTimeApi(params),
+          getTechnicianPerformanceApi(params),
+          getCostPerPropertyApi(params),
+          getMaintenanceFrequencyApi(params),
+        ]);
+      return {
+        resolutionTime: resolutionTime.data,
+        technicianPerformance: technicianPerformance.data,
+        costPerProperty: costPerProperty.data,
+        maintenanceFrequency: maintenanceFrequency.data,
+      };
     } catch (error) {
       return rejectWithValue(error?.response?.data?.message || error?.message || 'Failed to load analytics');
     }
@@ -23,6 +31,7 @@ export const fetchLandlordStats = createAsyncThunk(
 
 const initialState = {
   resolutionTime: null,
+  technicianPerformance: null,
   costPerProperty: null,
   maintenanceFrequency: null,
   isLoading: false,
@@ -42,6 +51,7 @@ const analyticsSlice = createSlice({
       .addCase(fetchLandlordStats.fulfilled, (state, action) => {
         state.isLoading = false;
         state.resolutionTime = action.payload.resolutionTime;
+        state.technicianPerformance = action.payload.technicianPerformance;
         state.costPerProperty = action.payload.costPerProperty;
         state.maintenanceFrequency = action.payload.maintenanceFrequency;
       })
