@@ -354,6 +354,37 @@ const verifyResetCode = async (email, code) => {
   return { resetToken };
 };
 
+const changePassword = async (userId, currentPassword, newPassword) => {
+  const user = await User.findById(userId).select('+passwordHash');
+
+  if (!user) {
+    throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+  }
+
+  if (!user.passwordHash) {
+    throw new AppError('Cannot change password for Google-authenticated accounts', 400, 'GOOGLE_ACCOUNT');
+  }
+
+  const isMatch = await comparePassword(currentPassword, user.passwordHash);
+
+  if (!isMatch) {
+    throw new AppError('Current password is incorrect', 400, 'INCORRECT_PASSWORD');
+  }
+
+  const isSame = await comparePassword(newPassword, user.passwordHash);
+
+  if (isSame) {
+    throw new AppError('New password must be different from your current password', 400, 'SAME_PASSWORD');
+  }
+
+  user.passwordHash = await hashPassword(newPassword);
+  await user.save();
+
+  await RefreshToken.deleteMany({ userId: user._id });
+
+  return { message: 'Password changed successfully.' };
+};
+
 const resetPassword = async (email, resetToken, newPassword) => {
   let decoded;
   try {
@@ -439,6 +470,7 @@ const refreshUserTokens = async (refreshToken) => {
 };
 
 export {
+  changePassword,
   comparePassword,
   createUserWithRole,
   findOrCreateGoogleUser,

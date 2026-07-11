@@ -2,10 +2,10 @@ import User from '../models/User.js';
 import { AppError } from '../middleware/error.middleware.js';
 
 const ALLOWED_UPDATES = {
-  LANDLORD: ['name', 'phone', 'profile.companyName'],
-  CONTRACTOR: ['name', 'phone', 'profile.businessName', 'profile.serviceCategories'],
-  TECHNICIAN: ['name', 'phone', 'profile.specializations', 'profile.isAvailable'],
-  TENANT: ['name', 'phone'],
+  LANDLORD: ['name', 'phone', 'profile.companyName', 'profile.notificationPreferences'],
+  CONTRACTOR: ['name', 'phone', 'profile.businessName', 'profile.serviceCategories', 'profile.notificationPreferences'],
+  TECHNICIAN: ['name', 'phone', 'profile.specializations', 'profile.isAvailable', 'profile.notificationPreferences'],
+  TENANT: ['name', 'phone', 'profile.notificationPreferences'],
 };
 
 const getProfile = async (userId) => {
@@ -50,4 +50,14 @@ const updateProfile = async (userId, role, data) => {
   return user;
 };
 
-export { getProfile, updateProfile };
+const deleteAccount = async (userId) => {
+  const user = await User.findByIdAndUpdate(userId, { isActive: false }, { new: true });
+
+  if (!user) {
+    throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+  }
+
+  return user;
+};
+
+export { deleteAccount, getProfile, updateProfile };
