@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice';
 import analyticsReducer from './slices/analyticsSlice';
 import ticketReducer from './slices/ticketSlice';
 import propertyReducer from './slices/propertySlice';
+import contractorReducer from './slices/contractorSlice';
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     analytics: analyticsReducer,
     tickets: ticketReducer,
     properties: propertyReducer,
+    contractors: contractorReducer,
   },
 });
 
