@@ -11,6 +11,7 @@ import {
   resendVerificationLimiter,
 } from '../config/rateLimit.js';
 import {
+  changePasswordHandler,
   googleAuth,
   googleCallback,
   getInviteTokenMeta,
@@ -27,7 +28,7 @@ import {
   verifyResetCodeHandler,
   resetPasswordHandler,
 } from '../controllers/auth.controller.js';
-import { loginSchema, registerSchema, verifyEmailSchema, resendVerificationSchema, requestPasswordResetSchema, verifyResetCodeSchema, resetPasswordSchema } from '../validators/auth.validators.js';
+import { changePasswordSchema, loginSchema, registerSchema, verifyEmailSchema, resendVerificationSchema, requestPasswordResetSchema, verifyResetCodeSchema, resetPasswordSchema } from '../validators/auth.validators.js';
 import { inviteTokenQuerySchema, registerWithInviteSchema } from '../validators/invite.validators.js';
 
 const router = Router();
@@ -61,6 +62,7 @@ router.post('/resend-verification', resendVerificationLimiter, validateRequest({
 router.post('/forgot-password', forgotPasswordLimiter, validateRequest({ body: requestPasswordResetSchema }), requestPasswordResetHandler);
 router.post('/verify-reset-code', validateRequest({ body: verifyResetCodeSchema }), verifyResetCodeHandler);
 router.post('/reset-password', validateRequest({ body: resetPasswordSchema }), resetPasswordHandler);
+router.post('/change-password', authMiddleware, validateRequest({ body: changePasswordSchema }), changePasswordHandler);
 router.post('/logout', logout);
 router.get('/me', authMiddleware, me);
 router.get('/google', googleAuth);
