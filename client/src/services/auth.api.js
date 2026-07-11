@@ -9,6 +9,9 @@ export const registerLandlord = (data) =>
 export const registerWithInvite = (data, token) =>
   api.post('/auth/register/invite', data, { params: { token } }).then((res) => res.data);
 
+export const changePassword = (data) =>
+  api.post('/auth/change-password', data).then((res) => res.data);
+
 export const logout = () =>
   api.post('/auth/logout').then((res) => res.data);
 
