@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import {
+  changePassword as changePasswordThunk,
   clearAuthError,
+  deleteAccount as deleteAccountThunk,
   fetchCurrentUser as fetchCurrentUserThunk,
   login as loginThunk,
   logout as logoutThunk,
@@ -20,7 +22,9 @@ const useAuth = () => {
 
   const actions = useMemo(
     () => ({
+      changePassword: (data) => dispatch(changePasswordThunk(data)),
       clearError: () => dispatch(clearAuthError()),
+      deleteAccount: () => dispatch(deleteAccountThunk()),
       login: (credentials) => dispatch(loginThunk(credentials)),
       registerLandlord: (data) => dispatch(registerLandlordThunk(data)),
       registerWithInvite: (payload) => dispatch(registerWithInviteThunk(payload)),
