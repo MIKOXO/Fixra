@@ -1,5 +1,6 @@
 import passport from 'passport';
 import {
+  changePassword,
   createUserWithRole,
   hashToken,
   loginWithPassword,
@@ -270,7 +271,19 @@ const resetPasswordHandler = async (req, res, next) => {
   }
 };
 
+const changePasswordHandler = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const result = await changePassword(req.user.id, currentPassword, newPassword);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export {
+  changePasswordHandler,
   clearAuthCookies,
   getInviteTokenMeta,
   googleAuth,
