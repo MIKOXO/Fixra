@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
+  changePassword as changePasswordApi,
   fetchCurrentUser as fetchCurrentUserApi,
   login as loginApi,
   logout as logoutApi,
@@ -11,6 +12,7 @@ import {
   verifyResetCode as verifyResetCodeApi,
   resetPassword as resetPasswordApi,
 } from '@services/auth.api';
+import { deleteAccount as deleteAccountApi } from '@services/user.api';
 
 const extractErrorMessage = (error, fallback) =>
   error?.response?.data?.message || error?.message || fallback;
@@ -128,6 +130,24 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
+export const changePassword = createAsyncThunk('auth/changePassword', async (data, { rejectWithValue }) => {
+  try {
+    const response = await changePasswordApi(data);
+    return response;
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error, 'Unable to change password'));
+  }
+});
+
+export const deleteAccount = createAsyncThunk('auth/deleteAccount', async (_payload, { rejectWithValue }) => {
+  try {
+    const response = await deleteAccountApi();
+    return response;
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error, 'Unable to delete account'));
+  }
+});
+
 export const fetchCurrentUser = createAsyncThunk(
   'auth/fetchCurrentUser',
   async (_payload, { rejectWithValue }) => {
@@ -218,6 +238,16 @@ const authSlice = createSlice({
       .addCase(resetPassword.pending, startLoading)
       .addCase(resetPassword.fulfilled, succeedWithoutAuth)
       .addCase(resetPassword.rejected, fail)
+      .addCase(changePassword.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.error = null;
+      })
+      .addCase(changePassword.rejected, fail)
+      .addCase(deleteAccount.pending, startLoading)
+      .addCase(deleteAccount.fulfilled, () => ({ ...initialState }))
+      .addCase(deleteAccount.rejected, fail)
       .addCase(fetchCurrentUser.pending, startLoading)
       .addCase(fetchCurrentUser.fulfilled, succeedWithUser)
       .addCase(fetchCurrentUser.rejected, (state, action) => {
