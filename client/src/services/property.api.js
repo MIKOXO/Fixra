@@ -15,14 +15,10 @@ export const updateProperty = (id, data) =>
 export const deleteProperty = (id) =>
   api.delete(`/properties/${id}`).then((res) => res.data);
 
-export const addUnit = (propertyId, data) =>
-  api.post(`/properties/${propertyId}/units`, data).then((res) => res.data);
+export const assignTenant = (propertyId, data) =>
+  api.post(`/properties/${propertyId}/assign`, data).then((res) => res.data);
 
-export const updateUnit = (propertyId, unitId, data) =>
-  api.put(`/properties/${propertyId}/units/${unitId}`, data).then((res) => res.data);
-
-export const deleteUnit = (propertyId, unitId) =>
-  api.delete(`/properties/${propertyId}/units/${unitId}`).then((res) => res.data);
-
-export const assignTenant = (propertyId, unitId, data) =>
-  api.post(`/properties/${propertyId}/units/${unitId}/assign`, data).then((res) => res.data);
+export const uploadPropertyDocuments = (formData) =>
+  api.post('/properties/upload-documents', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then((res) => res.data);
