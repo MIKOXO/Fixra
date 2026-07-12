@@ -7,6 +7,7 @@ const ALLOWED_MIMES = [
   'image/png',
   'image/gif',
   'image/webp',
+  'application/pdf',
   'video/mp4',
   'video/mpeg',
   'video/quicktime',
@@ -16,7 +17,7 @@ const fileFilter = (_req, file, cb) => {
   if (ALLOWED_MIMES.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only image and video files are allowed'), false);
+    cb(new Error('Only image, PDF, and video files are allowed'), false);
   }
 };
 
