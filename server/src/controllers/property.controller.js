@@ -1,13 +1,11 @@
 import {
-  addUnit,
   assignTenant,
   createProperty,
   deleteProperty,
   getProperties,
   getPropertyById,
-  removeUnit,
   updateProperty,
-  updateUnit,
+  uploadPropertyDocuments,
 } from '../services/property.service.js';
 
 const create = async (req, res, next) => {
@@ -66,49 +64,10 @@ const remove = async (req, res, next) => {
   }
 };
 
-const createUnit = async (req, res, next) => {
-  try {
-    const property = await addUnit(req.params.id, req.user.id, req.body);
-
-    return res.status(201).json({
-      message: 'Unit added successfully',
-      property,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-const changeUnit = async (req, res, next) => {
-  try {
-    const property = await updateUnit(req.params.id, req.params.unitId, req.user.id, req.body);
-
-    return res.status(200).json({
-      message: 'Unit updated successfully',
-      property,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-const deleteUnit = async (req, res, next) => {
-  try {
-    const property = await removeUnit(req.params.id, req.params.unitId, req.user.id);
-
-    return res.status(200).json({
-      message: 'Unit removed successfully',
-      property,
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 const assign = async (req, res, next) => {
   try {
     const { tenantId } = req.body;
-    const property = await assignTenant(req.params.id, req.params.unitId, req.user.id, tenantId);
+    const property = await assignTenant(req.params.id, req.user.id, tenantId);
 
     return res.status(200).json({
       message: 'Tenant assigned successfully',
@@ -119,4 +78,14 @@ const assign = async (req, res, next) => {
   }
 };
 
-export { assign, changeUnit, create, createUnit, deleteUnit, getById, list, remove, update };
+const uploadDocs = async (req, res, next) => {
+  try {
+    const result = await uploadPropertyDocuments(req.files);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export { assign, create, getById, list, remove, update, uploadDocs };

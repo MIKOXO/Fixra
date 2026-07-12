@@ -1,6 +1,7 @@
 import Property from '../models/Property.js';
 import User from '../models/User.js';
 import { AppError } from '../middleware/error.middleware.js';
+import { uploadToCloudinary } from './upload.service.js';
 
 const createProperty = async (landlordId, data) => {
   const property = await Property.create({ ...data, landlordId });
@@ -42,64 +43,7 @@ const deleteProperty = async (propertyId, landlordId) => {
   return property;
 };
 
-const addUnit = async (propertyId, landlordId, unitData) => {
-  const property = await Property.findOne({ _id: propertyId, landlordId });
-
-  if (!property) {
-    throw new AppError('Property not found', 404, 'PROPERTY_NOT_FOUND');
-  }
-
-  property.units.push(unitData);
-  await property.save();
-
-  return property;
-};
-
-const updateUnit = async (propertyId, unitId, landlordId, data) => {
-  const property = await Property.findOne({ _id: propertyId, landlordId });
-
-  if (!property) {
-    throw new AppError('Property not found', 404, 'PROPERTY_NOT_FOUND');
-  }
-
-  const unit = property.units.id(unitId);
-
-  if (!unit) {
-    throw new AppError('Unit not found', 404, 'UNIT_NOT_FOUND');
-  }
-
-  if (data.unitNumber !== undefined) unit.unitNumber = data.unitNumber;
-  if (data.isOccupied !== undefined) unit.isOccupied = data.isOccupied;
-
-  await property.save();
-
-  return property;
-};
-
-const removeUnit = async (propertyId, unitId, landlordId) => {
-  const property = await Property.findOne({ _id: propertyId, landlordId });
-
-  if (!property) {
-    throw new AppError('Property not found', 404, 'PROPERTY_NOT_FOUND');
-  }
-
-  const unit = property.units.id(unitId);
-
-  if (!unit) {
-    throw new AppError('Unit not found', 404, 'UNIT_NOT_FOUND');
-  }
-
-  if (unit.isOccupied) {
-    throw new AppError('Cannot remove an occupied unit', 400, 'UNIT_OCCUPIED');
-  }
-
-  property.units.pull({ _id: unitId });
-  await property.save();
-
-  return property;
-};
-
-const assignTenant = async (propertyId, unitId, landlordId, tenantId) => {
+const assignTenant = async (propertyId, landlordId, tenantId) => {
   const tenant = await User.findOne({ _id: tenantId, role: 'TENANT' });
 
   if (!tenant) {
@@ -112,29 +56,47 @@ const assignTenant = async (propertyId, unitId, landlordId, tenantId) => {
     throw new AppError('Property not found', 404, 'PROPERTY_NOT_FOUND');
   }
 
-  const unit = property.units.id(unitId);
-
-  if (!unit) {
-    throw new AppError('Unit not found', 404, 'UNIT_NOT_FOUND');
+  if (property.isOccupied) {
+    throw new AppError('Property is already occupied', 400, 'PROPERTY_OCCUPIED');
   }
 
-  if (unit.isOccupied) {
-    throw new AppError('Unit is already occupied', 400, 'UNIT_OCCUPIED');
-  }
-
-  unit.tenantId = tenantId;
-  unit.isOccupied = true;
+  property.tenantId = tenantId;
+  property.isOccupied = true;
   await property.save();
 
   tenant.profile = {
     ...tenant.profile,
     landlordId,
     propertyId,
-    unitId,
   };
   await tenant.save();
 
   return property;
 };
 
-export { addUnit, assignTenant, createProperty, deleteProperty, getProperties, getPropertyById, removeUnit, updateProperty, updateUnit };
+const uploadPropertyDocuments = async (files) => {
+  let titleDeedUrl = '';
+  let floorPlanUrl = '';
+  const photosUrls = [];
+
+  if (files.titleDeed) {
+    const result = await uploadToCloudinary(files.titleDeed[0], 'properties/documents');
+    titleDeedUrl = result.url;
+  }
+
+  if (files.floorPlan) {
+    const result = await uploadToCloudinary(files.floorPlan[0], 'properties/documents');
+    floorPlanUrl = result.url;
+  }
+
+  if (files.photos) {
+    for (const photo of files.photos) {
+      const result = await uploadToCloudinary(photo, 'properties/photos');
+      photosUrls.push(result.url);
+    }
+  }
+
+  return { titleDeedUrl, floorPlanUrl, photosUrls };
+};
+
+export { assignTenant, createProperty, deleteProperty, getProperties, getPropertyById, updateProperty, uploadPropertyDocuments };
