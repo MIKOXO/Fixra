@@ -4,7 +4,6 @@ import {
   createProperty as createPropertyApi,
   updateProperty as updatePropertyApi,
   deleteProperty as deletePropertyApi,
-  addUnit as addUnitApi,
 } from '@services/property.api';
 
 export const fetchProperties = createAsyncThunk(
@@ -51,18 +50,6 @@ export const deleteProperty = createAsyncThunk(
       return id;
     } catch (error) {
       return rejectWithValue(error?.response?.data?.message || error?.message || 'Failed to delete property');
-    }
-  }
-);
-
-export const addUnit = createAsyncThunk(
-  'properties/addUnit',
-  async ({ propertyId, data }, { rejectWithValue }) => {
-    try {
-      const response = await addUnitApi(propertyId, data);
-      return response.property;
-    } catch (error) {
-      return rejectWithValue(error?.response?.data?.message || error?.message || 'Failed to add unit');
     }
   }
 );
@@ -135,19 +122,7 @@ const propertySlice = createSlice({
         state.operationLoading = false;
         state.error = action.payload;
       })
-      .addCase(addUnit.pending, (state) => {
-        state.operationLoading = true;
-        state.error = null;
-      })
-      .addCase(addUnit.fulfilled, (state, action) => {
-        state.operationLoading = false;
-        const idx = state.properties.findIndex((p) => (p._id || p.id) === (action.payload._id || action.payload.id));
-        if (idx !== -1) state.properties[idx] = action.payload;
-      })
-      .addCase(addUnit.rejected, (state, action) => {
-        state.operationLoading = false;
-        state.error = action.payload;
-      });
+      ;
   },
 });
 
