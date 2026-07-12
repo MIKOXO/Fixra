@@ -150,7 +150,7 @@ const Home = () => {
 
   const totalProperties = properties?.length ?? 0;
   const totalUnits = useMemo(
-    () => (properties ?? []).reduce((sum, p) => sum + ((p.units ?? p.unitCount ?? []).length || 0), 0),
+    () => (properties ?? []).length,
     [properties]
   );
   const openTickets = useMemo(
@@ -408,7 +408,7 @@ const Home = () => {
               {(properties ?? []).map((property) => {
                 const pid = property._id || property.id;
                 const openCount = propertyTicketCounts[pid] || 0;
-                const unitCount = (property.units ?? property.unitCount ?? []).length || 0;
+                const unitCount = 1;
                 const dotColor =
                   openCount === 0
                     ? PROPERTY_DOT_COLORS.green
