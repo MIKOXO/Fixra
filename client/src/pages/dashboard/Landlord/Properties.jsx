@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { MdApartment, MdAdd, MdVisibility, MdEdit, MdDelete, MdPersonAdd } from 'react-icons/md';
+import { MdApartment, MdAdd, MdEdit, MdDelete, MdPersonAdd } from 'react-icons/md';
 import Skeleton from '@components/ui/Skeleton';
 import DeleteConfirmModal from '@components/ui/DeleteConfirmModal';
 import { fetchProperties, deleteProperty, clearPropertyError } from '@store/slices/propertySlice';
 import { fetchTickets } from '@store/slices/ticketSlice';
 import AddPropertyModal from '@features/properties/AddPropertyModal';
 import EditPropertyModal from '@features/properties/EditPropertyModal';
-import AddUnitModal from '@features/properties/AddUnitModal';
 import InviteTenantModal from '@features/properties/InviteTenantModal';
 
 function CardSkeleton() {
@@ -33,11 +32,9 @@ const Properties = () => {
   const { properties, isLoading, error } = useSelector((s) => s.properties);
   const tickets = useSelector((s) => s.tickets.tickets);
 
-  const [expandedId, setExpandedId] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editProperty, setEditProperty] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [addUnitFor, setAddUnitFor] = useState(null);
   const [inviteTarget, setInviteTarget] = useState(null);
 
   useEffect(() => {
@@ -62,10 +59,6 @@ const Properties = () => {
     });
     return map;
   }, [tickets]);
-
-  const toggleExpand = (id) => {
-    setExpandedId((prev) => (prev === id ? null : id));
-  };
 
   return (
     <div className="px-6 py-8">
@@ -112,12 +105,10 @@ const Properties = () => {
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {(properties ?? []).map((property) => {
             const pid = property._id || property.id;
-            const unitList = property.units ?? [];
             const openCount = openTicketCounts[pid] || 0;
-            const addressStr = [property.address?.street, property.address?.city, property.address?.state]
-              .filter(Boolean)
-              .join(', ');
-            const isExpanded = expandedId === pid;
+            const addressStr = property.address?.region
+              ? [property.address?.houseNumber, property.address?.city, property.address?.region].filter(Boolean).join(', ')
+              : [property.address?.street, property.address?.city, property.address?.state].filter(Boolean).join(', ');
 
             return (
               <div key={pid} className="rounded-2xl border border-charcoal-200/70 bg-white shadow-sm">
@@ -131,9 +122,21 @@ const Properties = () => {
 
                   <div className="mt-4 flex items-center gap-4 font-body text-sm text-charcoal-600">
                     <span>
-                      <span className="font-semibold text-charcoal-900">{unitList.length}</span>{' '}
-                      {unitList.length === 1 ? 'unit' : 'units'}
+                      <span
+                        className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                          property.isOccupied
+                            ? 'bg-sage-100 text-sage-700'
+                            : 'bg-charcoal-100 text-charcoal-500'
+                        }`}
+                      >
+                        {property.isOccupied ? 'Occupied' : 'Vacant'}
+                      </span>
                     </span>
+                    {property.tenantId?.name && (
+                      <span className="truncate text-charcoal-500">
+                        {property.tenantId.name}
+                      </span>
+                    )}
                     <span>
                       <span
                         className={`font-semibold ${
@@ -147,93 +150,33 @@ const Properties = () => {
                   </div>
 
                   <div className="mt-4 flex gap-2">
-                    <button
-                      onClick={() => toggleExpand(pid)}
-                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-charcoal-200/90 bg-white px-3 py-2 font-heading text-xs font-semibold text-charcoal-700 transition-colors hover:bg-charcoal-50"
-                    >
-                      <MdVisibility className="text-sm" />
-                      {isExpanded ? 'Hide Units' : 'View Units'}
-                    </button>
+                    {!property.isOccupied && (
+                      <button
+                        onClick={() => setInviteTarget(pid)}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary-500 px-3 py-2 font-heading text-xs font-semibold text-white transition-colors hover:bg-primary-600"
+                      >
+                        <MdPersonAdd className="text-sm" />
+                        Invite Tenant
+                      </button>
+                    )}
                     <button
                       onClick={() => setEditProperty(property)}
-                      className="flex items-center gap-1.5 rounded-xl border border-charcoal-200/90 bg-white px-3 py-2 font-heading text-xs font-semibold text-charcoal-700 transition-colors hover:bg-charcoal-50"
+                      className={`flex items-center justify-center gap-1.5 rounded-xl border border-charcoal-200/90 bg-white px-3 py-2 font-heading text-xs font-semibold text-charcoal-700 transition-colors hover:bg-charcoal-50 ${
+                        property.isOccupied ? 'flex-1' : ''
+                      }`}
                     >
                       <MdEdit className="text-sm" />
                       Edit
                     </button>
                     <button
                       onClick={() => setDeleteTarget(property)}
-                      className="flex items-center gap-1.5 rounded-xl border border-charcoal-200/90 bg-white px-3 py-2 font-heading text-xs font-semibold text-primary-500 transition-colors hover:bg-primary-50"
+                      className="flex items-center justify-center gap-1.5 rounded-xl border border-charcoal-200/90 bg-white px-3 py-2 font-heading text-xs font-semibold text-primary-500 transition-colors hover:bg-primary-50"
                     >
                       <MdDelete className="text-sm" />
                       Delete
                     </button>
                   </div>
                 </div>
-
-                {isExpanded && (
-                  <div className="border-t border-charcoal-100 px-5 pb-5 pt-4">
-                    <div className="flex items-center gap-4 pb-2 font-body text-[11px] font-semibold uppercase tracking-[0.05em] text-charcoal-400">
-                      <span className="flex-1">Unit</span>
-                      <span className="w-20">Status</span>
-                      <span className="flex-1">Tenant</span>
-                      <span className="w-24" />
-                    </div>
-
-                    {unitList.length === 0 ? (
-                      <p className="py-3 font-body text-sm text-charcoal-400">No units added yet.</p>
-                    ) : (
-                      <div className="divide-y divide-charcoal-50">
-                        {unitList.map((unit) => (
-                          <div
-                            key={unit._id || unit.unitNumber}
-                            className="flex items-center gap-4 py-2.5 font-body text-sm"
-                          >
-                            <span className="flex-1 font-medium text-charcoal-950">
-                              {unit.unitNumber}
-                            </span>
-                            <span className="w-20">
-                              <span
-                                className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                                  unit.isOccupied
-                                    ? 'bg-sage-100 text-sage-700'
-                                    : 'bg-charcoal-100 text-charcoal-500'
-                                }`}
-                              >
-                                {unit.isOccupied ? 'Occupied' : 'Vacant'}
-                              </span>
-                            </span>
-                            <span className="flex-1 truncate text-charcoal-600">
-                              {unit.tenantId?.name || '-'}
-                            </span>
-                            {!unit.isOccupied && (
-                              <button
-                                onClick={() =>
-                                  setInviteTarget({
-                                    propertyId: pid,
-                                    unitNumber: unit.unitNumber,
-                                  })
-                                }
-                                className="flex shrink-0 items-center gap-1 rounded-lg bg-primary-50 px-2.5 py-1.5 font-heading text-[11px] font-semibold text-primary-600 transition-colors hover:bg-primary-100"
-                              >
-                                <MdPersonAdd className="text-xs" />
-                                Invite
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <button
-                      onClick={() => setAddUnitFor(pid)}
-                      className="mt-3 inline-flex items-center gap-1.5 font-heading text-xs font-semibold text-primary-500 transition-colors hover:text-primary-600"
-                    >
-                      <MdAdd className="text-sm" />
-                      Add Unit
-                    </button>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -246,16 +189,10 @@ const Properties = () => {
         onClose={() => setEditProperty(null)}
         property={editProperty}
       />
-      <AddUnitModal
-        isOpen={!!addUnitFor}
-        onClose={() => setAddUnitFor(null)}
-        propertyId={addUnitFor}
-      />
       <InviteTenantModal
         isOpen={!!inviteTarget}
         onClose={() => setInviteTarget(null)}
-        propertyId={inviteTarget?.propertyId}
-        unitNumber={inviteTarget?.unitNumber}
+        propertyId={inviteTarget}
       />
       <DeleteConfirmModal
         isOpen={!!deleteTarget}
