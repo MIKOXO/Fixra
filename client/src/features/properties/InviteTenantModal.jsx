@@ -13,7 +13,7 @@ const schema = z.object({
 const inputClass =
   'mt-1.5 w-full rounded-xl border border-charcoal-200/90 bg-white px-4 py-2.5 text-charcoal-950 text-sm outline-none transition duration-200 placeholder:text-charcoal-400 placeholder:text-xs focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
 
-const InviteTenantModal = ({ isOpen, onClose, propertyId, unitNumber }) => {
+const InviteTenantModal = ({ isOpen, onClose, propertyId }) => {
   const [step, setStep] = useState('form');
   const [inviteLink, setInviteLink] = useState('');
   const [copied, setCopied] = useState(false);
@@ -36,7 +36,7 @@ const InviteTenantModal = ({ isOpen, onClose, propertyId, unitNumber }) => {
       const res = await generateInvite({
         role: 'TENANT',
         email,
-        meta: { propertyId, unitNumber },
+        meta: { propertyId },
       });
       const link = `${window.location.origin}/register/invite?token=${res.token}`;
       setInviteLink(link);
