@@ -509,7 +509,7 @@ const EditPropertyModal = ({ isOpen, onClose, property }) => {
             <div>
               <label className={labelClass}>TIN Number <span className="text-primary-500 text-base leading-none">*</span></label>
               <p className="mb-1 font-body text-[11px] text-charcoal-400">Tax Identification Number</p>
-              <input {...register('tinNumber')} className={inputClass} placeholder="e.g. 1234567890" />
+              <input {...register('tinNumber')} className={inputClass} placeholder="e.g. 1234567890" maxLength={10} onInput={(e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); }} />
               {errors.tinNumber && <p className="mt-1 font-body text-xs text-primary-500">{errors.tinNumber.message}</p>}
             </div>
           </div>
