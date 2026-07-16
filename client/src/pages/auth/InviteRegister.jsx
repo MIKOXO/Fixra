@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { HiOutlineUser, HiOutlineMail, HiOutlinePhone, HiOutlineEye, HiOutlineEyeOff, HiOutlineInformationCircle } from 'react-icons/hi';
 import AuthShell from '@features/auth/AuthShell';
 import { inviteRegisterSchema } from '@features/auth/auth.schemas';
 import { getDashboardPathForRole, getRoleLabel } from '@features/auth/auth.utils';
@@ -9,11 +10,12 @@ import { fetchInviteTokenMeta } from '@services/auth.api';
 import useAuth from '@hooks/useAuth';
 import useNotification from '@hooks/useNotification';
 import useAutoClearErrors from '@hooks/useAutoClearErrors';
+import Button from '@components/ui/Button';
 import PhoneInput from '@components/ui/PhoneInput';
 import PasswordStrengthIndicator from '@components/ui/PasswordStrengthIndicator';
 
 const inputClassName =
-  'mt-2 w-full rounded-2xl border border-charcoal-200 bg-white px-4 py-3 text-charcoal-950 outline-none transition focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
+  'mt-1.5 w-full rounded-xl border border-charcoal-200/90 bg-white px-4 py-2.5 text-charcoal-950 text-sm outline-none transition duration-200 placeholder:text-charcoal-400 placeholder:text-xs focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
 
 const inviteErrorMessages = {
   TOKEN_EXPIRED: 'This invite has expired. Ask your inviter to generate a new one.',
@@ -35,16 +37,29 @@ const buildContextLines = (invite) => {
   }
 
   if (invite?.role === 'TENANT') {
-    if (meta.landlordId) {
-      lines.push({ label: 'Landlord ID', value: meta.landlordId });
+    if (meta.landlordName) {
+      lines.push({
+        label: 'Landlord',
+        value: meta.landlordEmail
+          ? `${meta.landlordName} (${meta.landlordEmail})`
+          : meta.landlordName,
+      });
+    } else if (meta.landlordId) {
+      lines.push({ label: 'Landlord', value: meta.landlordId });
     }
 
-    if (meta.propertyId) {
+    if (meta.propertyName) {
+      const location = [meta.propertyHouseNumber, meta.propertyCity].filter(Boolean).join(', ');
+      lines.push({
+        label: 'Property',
+        value: location ? `${meta.propertyName} \u2014 ${location}` : meta.propertyName,
+      });
+    } else if (meta.propertyId) {
       lines.push({ label: 'Property ID', value: meta.propertyId });
     }
 
     if (meta.unitId) {
-      lines.push({ label: 'Unit ID', value: meta.unitId });
+      lines.push({ label: 'Unit', value: meta.unitId });
     }
   }
 
@@ -67,8 +82,15 @@ const buildContextLines = (invite) => {
       lines.push({ label: 'Services', value: meta.serviceCategories.join(', ') });
     }
 
-    if (meta.landlordId) {
-      lines.push({ label: 'Landlord ID', value: meta.landlordId });
+    if (meta.landlordName) {
+      lines.push({
+        label: 'Landlord',
+        value: meta.landlordEmail
+          ? `${meta.landlordName} (${meta.landlordEmail})`
+          : meta.landlordName,
+      });
+    } else if (meta.landlordId) {
+      lines.push({ label: 'Landlord', value: meta.landlordId });
     }
   }
 
@@ -81,12 +103,14 @@ const InviteRegister = () => {
   const token = searchParams.get('token')?.trim() || '';
   const { registerWithInvite, user, isAuthenticated, isLoading, error, clearError } = useAuth();
   const { notification, dismiss, showSuccess } = useNotification(error, {
-    onErrorDismiss: clearError
+    onErrorDismiss: clearError,
   });
   const navTimerRef = useRef(null);
   const [invite, setInvite] = useState(null);
   const [inviteStatus, setInviteStatus] = useState('loading');
   const [inviteMessage, setInviteMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -151,9 +175,7 @@ const InviteRegister = () => {
 
     fetchInviteTokenMeta(token)
       .then((response) => {
-        if (!active) {
-          return;
-        }
+        if (!active) return;
 
         setInvite(response.invite);
         reset({
@@ -166,9 +188,7 @@ const InviteRegister = () => {
         setInviteStatus('ready');
       })
       .catch((inviteError) => {
-        if (!active) {
-          return;
-        }
+        if (!active) return;
 
         setInviteStatus('error');
         setInviteMessage(
@@ -197,27 +217,22 @@ const InviteRegister = () => {
       <AuthShell
         eyebrow="Invite signup"
         title="This invite cannot be used"
-        subtitle={inviteMessage || 'We could not verify the invite token.'}
-        highlights={[]}
+        footer={
+          <Link to="/" className="text-sm font-semibold text-charcoal-600 transition-colors hover:text-primary-600">
+            Back to homepage
+          </Link>
+        }
       >
         <div className="space-y-4">
-          <div className="rounded-3xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs text-red-700">
             {inviteMessage}
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              to="/login"
-              className="inline-flex items-center justify-center rounded-full bg-primary-500 px-5 py-3 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600"
-            >
-              Back to login
-            </Link>
-            <Link
-              to="/"
-              className="inline-flex items-center justify-center rounded-full border border-charcoal-300 bg-white px-5 py-3 font-heading text-sm font-semibold text-charcoal-900 transition-colors hover:bg-charcoal-50"
-            >
-              Go home
-            </Link>
-          </div>
+          <Link
+            to="/login"
+            className="inline-flex w-full items-center justify-center rounded-xl bg-primary-500 px-4 py-2.5 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+          >
+            Back to login
+          </Link>
         </div>
       </AuthShell>
     );
@@ -227,61 +242,76 @@ const InviteRegister = () => {
     <AuthShell
       eyebrow="Invite signup"
       title="Complete your invited account"
-      subtitle="Your invite is verified before the form opens. Review the details below, then finish creating your secure account."
-      highlights={[]}
+      footer={
+        <Link to="/" className="text-sm font-semibold text-charcoal-600 transition-colors hover:text-primary-600">
+          Back to homepage
+        </Link>
+      }
     >
       {inviteStatus === 'loading' ? (
-        <div className="rounded-3xl border border-charcoal-200 bg-charcoal-50 px-4 py-5 text-charcoal-700">
+        <div className="rounded-xl border border-charcoal-200 bg-charcoal-50 px-4 py-3 text-sm text-charcoal-700">
           Verifying invite link...
         </div>
       ) : null}
 
       {inviteStatus === 'ready' ? (
-        <div className="space-y-5">
-          <div className="rounded-3xl border border-sage-200 bg-sage-50 px-5 py-4">
-            <p className="font-heading text-sm font-semibold uppercase tracking-[0.3em] text-sage-700">
-              Invite details
-            </p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {contextLines.map((item) => (
-                <div key={`${item.label}-${item.value}`} className="rounded-2xl bg-white px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-charcoal-500">
-                    {item.label}
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-charcoal-900">{item.value}</p>
-                </div>
-              ))}
+        <div className="space-y-6">
+          {contextLines.length > 0 && (
+            <div className="rounded-lg bg-primary-50/40 px-4 py-3">
+              <div className="mb-2 flex items-center gap-1.5">
+                <HiOutlineInformationCircle className="h-4 w-4 text-primary-500" />
+                <p className="font-heading text-[10px] font-semibold uppercase tracking-[0.15em] text-primary-600">
+                  Invite details
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {contextLines.map((item) => (
+                  <span
+                    key={`${item.label}-${item.value}`}
+                    className="inline-flex items-center gap-1 rounded-md bg-white/70 px-2.5 py-1 text-xs text-charcoal-700 ring-1 ring-charcoal-200/40"
+                  >
+                    <span className="font-semibold text-charcoal-500">{item.label}:</span>
+                    <span className="font-medium">{item.value}</span>
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          <form onSubmit={onSubmit} className="space-y-5">
+          <form onSubmit={onSubmit} className="space-y-3">
             <div>
               <label className="text-sm font-medium text-charcoal-700" htmlFor="email">
                 Email
               </label>
-              <input
-                id="email"
-                type="email"
-                readOnly
-                className={`${inputClassName} cursor-not-allowed bg-charcoal-50`}
-                {...register('email')}
-              />
+              <div className="relative">
+                <input
+                  id="email"
+                  type="email"
+                  readOnly
+                  className={`${inputClassName} cursor-not-allowed bg-charcoal-50`}
+                  {...register('email')}
+                />
+                <HiOutlineMail className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-charcoal-400" />
+              </div>
             </div>
 
             <div>
               <label className="text-sm font-medium text-charcoal-700" htmlFor="name">
                 Full name
               </label>
-              <input
-                id="name"
-                type="text"
-                autoComplete="name"
-                className={inputClassName}
-                placeholder="Jordan Reyes"
-                {...register('name')}
-              />
+              <div className="relative">
+                <input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  className={inputClassName}
+                  placeholder="Jordan Reyes"
+                  {...register('name')}
+                />
+                <HiOutlineUser className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-charcoal-400" />
+              </div>
               {errors.name?.message ? (
-                <p className="mt-2 text-sm text-red-600">{errors.name.message}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
               ) : null}
             </div>
 
@@ -289,38 +319,54 @@ const InviteRegister = () => {
               <label className="text-sm font-medium text-charcoal-700" htmlFor="phone">
                 Phone
               </label>
-              <Controller
-                name="phone"
-                control={control}
-                render={({ field }) => (
-                  <PhoneInput
-                    id="phone"
-                    className={inputClassName}
-                    placeholder="+251 91 123 4567"
-                    {...field}
-                  />
-                )}
-              />
+              <div className="relative">
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      id="phone"
+                      className={inputClassName}
+                      placeholder="+251 91 123 4567"
+                      {...field}
+                    />
+                  )}
+                />
+                <HiOutlinePhone className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-charcoal-400" />
+              </div>
               {errors.phone?.message ? (
-                <p className="mt-2 text-sm text-red-600">{errors.phone.message}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>
               ) : null}
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="text-sm font-medium text-charcoal-700" htmlFor="password">
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  className={inputClassName}
-                  placeholder="Minimum 8 characters"
-                  {...register('password')}
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    className={inputClassName}
+                    placeholder="Min 8 chars"
+                    {...register('password')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 transition-colors hover:text-charcoal-600"
+                  >
+                    {showPassword ? (
+                      <HiOutlineEyeOff className="h-5 w-5" />
+                    ) : (
+                      <HiOutlineEye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
                 {errors.password?.message ? (
-                  <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
+                  <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
                 ) : null}
                 <PasswordStrengthIndicator password={passwordValue} />
               </div>
@@ -329,23 +375,36 @@ const InviteRegister = () => {
                 <label className="text-sm font-medium text-charcoal-700" htmlFor="confirmPassword">
                   Confirm password
                 </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  className={inputClassName}
-                  placeholder="Repeat your password"
-                  {...register('confirmPassword')}
-                />
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    className={inputClassName}
+                    placeholder="Repeat password"
+                    {...register('confirmPassword')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 transition-colors hover:text-charcoal-600"
+                  >
+                    {showConfirmPassword ? (
+                      <HiOutlineEyeOff className="h-5 w-5" />
+                    ) : (
+                      <HiOutlineEye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
                 {errors.confirmPassword?.message ? (
-                  <p className="mt-2 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                  <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>
                 ) : null}
               </div>
             </div>
 
             {notification ? (
               <div
-                className={`rounded-2xl border px-4 py-3 text-sm flex items-center justify-between gap-3 ${
+                className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-xs ${
                   notification.type === 'error'
                     ? 'border-red-200 bg-red-50 text-red-700'
                     : 'border-sage-200 bg-sage-50 text-sage-700'
@@ -355,20 +414,33 @@ const InviteRegister = () => {
                 <button
                   type="button"
                   onClick={dismiss}
-                  className="shrink-0 text-2xl leading-none opacity-60 hover:opacity-100 transition-opacity"
+                  className="shrink-0 text-2xl leading-none opacity-60 transition-opacity hover:opacity-100"
                 >
                   &times;
                 </button>
               </div>
             ) : null}
 
-            <button
+            <Button
               type="submit"
               disabled={isSubmitting || isLoading}
-              className="inline-flex w-full items-center justify-center rounded-full bg-primary-500 px-6 py-3 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-60"
+              loading={isSubmitting || isLoading}
+              variant="primary"
             >
               {isSubmitting || isLoading ? 'Creating account...' : 'Complete registration'}
-            </button>
+            </Button>
+
+            <div className="text-center text-xs">
+              <p className="text-charcoal-600">
+                Already have an account?{' '}
+                <Link
+                  to="/login"
+                  className="font-semibold text-primary-600 transition-colors hover:text-primary-700"
+                >
+                  Log in
+                </Link>
+              </p>
+            </div>
           </form>
         </div>
       ) : null}
