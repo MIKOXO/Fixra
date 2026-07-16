@@ -14,7 +14,15 @@ const validateRequest = (schemas = {}) => (req, _res, next) => {
         throw new AppError(firstIssue?.message || 'Validation failed', 400, 'VALIDATION_ERROR');
       }
 
-      req[segment] = result.data;
+      // Express 5 exposes `req.query` through a getter without a setter.
+      // Defining an own property lets validated/coerced values replace the
+      // raw request data without throwing on query-string validation.
+      Object.defineProperty(req, segment, {
+        configurable: true,
+        enumerable: true,
+        value: result.data,
+        writable: true,
+      });
     }
 
     return next();
