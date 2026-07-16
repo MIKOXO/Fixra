@@ -16,6 +16,8 @@ import {
   resetPassword,
 } from '../services/auth.service.js';
 import RefreshToken from '../models/RefreshToken.js';
+import User from '../models/User.js';
+import Property from '../models/Property.js';
 import { activateLink } from '../services/contractorLink.service.js';
 import {
   buildProfile, validateToken, consumeToken
@@ -191,12 +193,31 @@ const getInviteTokenMeta = async (req, res, next) => {
   try {
     const { token } = req.query;
     const invite = await validateToken(token);
+    const meta = { ...(invite.meta || {}) };
+
+    if (meta.landlordId) {
+      const landlord = await User.findById(meta.landlordId).select('name email').lean();
+      if (landlord) {
+        meta.landlordName = landlord.name;
+        meta.landlordEmail = landlord.email;
+      }
+    }
+
+    if (meta.propertyId) {
+      const property = await Property.findById(meta.propertyId).select('name address').lean();
+      if (property) {
+        meta.propertyName = property.name;
+        meta.propertyHouseNumber = property.address?.houseNumber;
+        meta.propertyCity = property.address?.city;
+        meta.propertyRegion = property.address?.region;
+      }
+    }
 
     return res.status(200).json({
       invite: {
         role: invite.role,
         email: invite.email,
-        meta: invite.meta,
+        meta,
         expiresAt: invite.expiresAt,
         isUsed: invite.isUsed,
       },
