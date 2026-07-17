@@ -23,11 +23,14 @@ import LandlordTickets from '@pages/dashboard/Landlord/Tickets';
 import LandlordContractors from '@pages/dashboard/Landlord/Contractors';
 import LandlordAnalytics from '@pages/dashboard/Landlord/Analytics';
 import LandlordSettings from '@pages/dashboard/Landlord/Settings';
-import TenantDashboard from '@pages/dashboard/Tenant/Home';
+import TenantHome from '@pages/dashboard/Tenant/Home';
+import TenantSubmitTicket from '@pages/dashboard/Tenant/SubmitTicket';
+import TenantTickets from '@pages/dashboard/Tenant/Tickets';
+import TenantSettings from '@pages/dashboard/Tenant/Settings';
 import TechnicianDashboard from '@pages/dashboard/Technician/Home';
 import ContractorDashboard from '@pages/dashboard/Contractor/Home';
 import SuperAdminDashboard from '@pages/dashboard/SuperAdmin/Home';
-import { landlordNav } from '@constants/navItems';
+import { landlordNav, tenantNav } from '@constants/navItems';
 import ProtectedRoute from './ProtectedRoute';
 import RoleGuard from './RoleGuard';
 
@@ -130,9 +133,15 @@ const router = createBrowserRouter([
             path: '/tenant',
             element: (
               <RoleGuard requiredRole='TENANT'>
-                <TenantDashboard />
+                <DashboardLayout navItems={tenantNav} role='Tenant' />
               </RoleGuard>
             ),
+            children: [
+              { index: true, element: <TenantHome /> },
+              { path: 'submit-ticket', element: <TenantSubmitTicket /> },
+              { path: 'tickets', element: <TenantTickets /> },
+              { path: 'settings', element: <TenantSettings /> },
+            ],
           },
           {
             path: '/technician',
