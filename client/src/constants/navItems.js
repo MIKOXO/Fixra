@@ -5,6 +5,7 @@ import {
   MdEngineering,
   MdBarChart,
   MdSettings,
+  MdPostAdd,
   MdHomeWork,
   MdPayment,
   MdChat,
@@ -30,10 +31,8 @@ export const landlordNav = [
 
 export const tenantNav = [
   { label: 'Dashboard', path: '/tenant', icon: MdDashboard },
-  { label: 'My Unit', path: '/tenant/unit', icon: MdHomeWork },
-  { label: 'Tickets', path: '/tenant/tickets', icon: MdConfirmationNumber },
-  { label: 'Payments', path: '/tenant/payments', icon: MdPayment },
-  { label: 'Messages', path: '/tenant/messages', icon: MdChat },
+  { label: 'Submit Request', path: '/tenant/submit-ticket', icon: MdPostAdd },
+  { label: 'My Tickets', path: '/tenant/tickets', icon: MdConfirmationNumber },
   { label: 'Settings', path: '/tenant/settings', icon: MdSettings },
 ];
 
