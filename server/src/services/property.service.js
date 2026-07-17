@@ -8,13 +8,22 @@ const createProperty = async (landlordId, data) => {
   return property;
 };
 
-const getProperties = async (landlordId) => {
-  const properties = await Property.find({ landlordId }).sort({ createdAt: -1 });
+const getProperties = async (user) => {
+  if (user.role === 'TENANT') {
+    const tenant = await User.findById(user.id).select('profile');
+    if (tenant?.profile?.propertyId) {
+      const property = await Property.findById(tenant.profile.propertyId);
+      return property ? [property] : [];
+    }
+    return [];
+  }
+  const properties = await Property.find({ landlordId: user.id }).sort({ createdAt: -1 });
   return properties;
 };
 
-const getPropertyById = async (propertyId, landlordId) => {
-  const property = await Property.findOne({ _id: propertyId, landlordId });
+const getPropertyById = async (propertyId, user) => {
+  const filter = user.role === 'TENANT' ? { _id: propertyId } : { _id: propertyId, landlordId: user.id };
+  const property = await Property.findOne(filter);
 
   if (!property) {
     throw new AppError('Property not found', 404, 'PROPERTY_NOT_FOUND');

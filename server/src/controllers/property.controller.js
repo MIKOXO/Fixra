@@ -23,7 +23,7 @@ const create = async (req, res, next) => {
 
 const list = async (req, res, next) => {
   try {
-    const properties = await getProperties(req.user.id);
+    const properties = await getProperties(req.user);
 
     return res.status(200).json({ properties });
   } catch (error) {
@@ -33,7 +33,7 @@ const list = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    const property = await getPropertyById(req.params.id, req.user.id);
+    const property = await getPropertyById(req.params.id, req.user);
 
     return res.status(200).json({ property });
   } catch (error) {

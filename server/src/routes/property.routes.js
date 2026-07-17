@@ -20,10 +20,11 @@ import {
 
 const router = Router();
 
-router.use(authMiddleware, requireRole('LANDLORD'));
+router.use(authMiddleware);
 
 router.post(
   '/upload-documents',
+  requireRole('LANDLORD'),
   upload.fields([
     { name: 'titleDeed', maxCount: 1 },
     { name: 'floorPlan', maxCount: 1 },
@@ -31,12 +32,12 @@ router.post(
   ]),
   uploadDocs
 );
-router.post('/', validateRequest({ body: createPropertySchema }), create);
+router.post('/', requireRole('LANDLORD'), validateRequest({ body: createPropertySchema }), create);
 router.get('/', list);
 router.get('/:id', getById);
-router.put('/:id', validateRequest({ body: updatePropertySchema }), update);
-router.delete('/:id', remove);
+router.put('/:id', requireRole('LANDLORD'), validateRequest({ body: updatePropertySchema }), update);
+router.delete('/:id', requireRole('LANDLORD'), remove);
 
-router.post('/:id/assign', validateRequest({ body: assignTenantSchema }), assign);
+router.post('/:id/assign', requireRole('LANDLORD'), validateRequest({ body: assignTenantSchema }), assign);
 
 export default router;
