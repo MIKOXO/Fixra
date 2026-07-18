@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { MdConfirmationNumber } from 'react-icons/md';
 import Skeleton from '@components/ui/Skeleton';
 import Select from '@components/ui/Select';
+import useAuth from '@hooks/useAuth';
 import { fetchTickets, transitionTicketStatus, clearTicketError } from '@store/slices/ticketSlice';
 import { fetchProperties } from '@store/slices/propertySlice';
 import AssignContractorModal from '@features/tickets/AssignContractorModal';
@@ -50,6 +51,7 @@ function TableSkeleton() {
 
 const Tickets = () => {
   const dispatch = useDispatch();
+  const { user } = useAuth();
   const { tickets, isLoading, error } = useSelector((s) => s.tickets);
   const properties = useSelector((s) => s.properties.properties);
 
@@ -274,6 +276,7 @@ const Tickets = () => {
           setDrawerTicketId(null);
           setTimeout(() => setAssignTarget(id), 100);
         }}
+        userRole={user?.role}
       />
     </div>
   );
