@@ -395,6 +395,7 @@ const Home = () => {
       <TicketDetailDrawer
         isOpen={!!drawerTicketId}
         ticketId={drawerTicketId}
+        userRole={user?.role}
         onClose={() => setDrawerTicketId(null)}
       />
     </>
