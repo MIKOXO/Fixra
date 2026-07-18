@@ -69,6 +69,41 @@ const containerVariants = {
   },
 };
 
+const TicketsSkeleton = () => (
+  <div className="space-y-6" aria-busy="true" aria-label="Loading tickets">
+    <div className="space-y-2">
+      <Skeleton className="h-3 w-32" />
+      <Skeleton className="h-7 w-40" />
+      <Skeleton className="h-4 w-72" />
+    </div>
+
+    <div className="flex items-center gap-3">
+      <Skeleton className="h-5 w-5" />
+      <Skeleton className="h-10 w-44 rounded-xl" />
+    </div>
+
+    <div className="space-y-3">
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="flex w-full items-center gap-4 rounded-2xl border border-charcoal-200/70 bg-white p-5 shadow-sm"
+        >
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-4 w-3/5" />
+            <div className="flex flex-wrap gap-2">
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-5 w-14 rounded-full" />
+            </div>
+          </div>
+          <Skeleton className="h-5 w-20 shrink-0 rounded-full" />
+          <Skeleton className="hidden h-3 w-16 shrink-0 sm:block" />
+          <Skeleton className="h-4 w-4 shrink-0" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 const Tickets = () => {
   const dispatch = useDispatch();
   const { user } = useAuth();
@@ -89,13 +124,16 @@ const Tickets = () => {
   return (
     <>
       <div className="px-6 py-8">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-6"
-        >
-          <motion.div variants={itemVariants}>
+        {isLoading ? (
+          <TicketsSkeleton />
+        ) : (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-6"
+          >
+            <motion.div variants={itemVariants}>
             <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.35em] text-primary-500">
               Tenant dashboard
             </p>
@@ -105,9 +143,9 @@ const Tickets = () => {
             <p className="mt-1 font-body text-sm text-charcoal-500">
               View and track all your maintenance requests.
             </p>
-          </motion.div>
+            </motion.div>
 
-          <motion.div variants={itemVariants} className="flex items-center gap-3">
+            <motion.div variants={itemVariants} className="flex items-center gap-3">
             <MdFilterList className="text-lg text-charcoal-400" />
             <Select
               value={statusFilter}
@@ -116,40 +154,9 @@ const Tickets = () => {
               placeholder="All statuses"
               className="w-44"
             />
-          </motion.div>
+            </motion.div>
 
-          {isLoading ? (
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <Skeleton className="h-3 w-36" />
-                <Skeleton className="h-7 w-48" />
-                <Skeleton className="h-4 w-64" />
-              </div>
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-5 w-5" />
-                <Skeleton className="h-10 w-44 rounded-xl" />
-              </div>
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-4 rounded-2xl border border-charcoal-200/70 bg-white p-5"
-                  >
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/5" />
-                      <div className="flex gap-2">
-                        <Skeleton className="h-5 w-16 rounded-full" />
-                        <Skeleton className="h-5 w-14 rounded-full" />
-                      </div>
-                    </div>
-                    <Skeleton className="h-5 w-20 rounded-full" />
-                    <Skeleton className="hidden h-3 w-16 sm:block" />
-                    <Skeleton className="h-4 w-4" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : error ? (
+            {error ? (
             <div className="flex items-center gap-3 rounded-2xl border border-primary-200/60 bg-primary-50/60 px-5 py-4">
               <span className="font-body text-sm text-primary-700">
                 Failed to load tickets.{' '}
@@ -161,7 +168,7 @@ const Tickets = () => {
                 </button>
               </span>
             </div>
-          ) : filtered.length === 0 ? (
+            ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-charcoal-200/70 bg-white px-6 py-12 text-center shadow-sm">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-charcoal-100">
                 <MdConfirmationNumber className="text-2xl text-charcoal-400" />
@@ -175,7 +182,7 @@ const Tickets = () => {
                   : 'Your maintenance requests will appear here once you submit one.'}
               </p>
             </div>
-          ) : (
+            ) : (
             <motion.div variants={itemVariants} className="space-y-3">
               {filtered.map((ticket) => (
                 <button
@@ -221,8 +228,9 @@ const Tickets = () => {
                 </button>
               ))}
             </motion.div>
-          )}
-        </motion.div>
+            )}
+          </motion.div>
+        )}
       </div>
 
       <TicketDetailDrawer

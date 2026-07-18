@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MdNotifications, MdPerson, MdSecurity } from 'react-icons/md';
 import Button from '@components/ui/Button';
+import Skeleton from '@components/ui/Skeleton';
 import { updateProfile } from '@services/user.api';
 import { changePassword, fetchCurrentUser } from '@store/slices/authSlice';
 import { getUserFriendlyError } from '@utils/notificationUtils';
@@ -26,6 +27,38 @@ const inputClass =
   'w-full rounded-xl border border-charcoal-200/90 bg-white px-3.5 py-2.5 font-body text-sm text-charcoal-700 outline-none transition duration-200 placeholder:text-charcoal-400 focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
 
 const labelClass = 'mb-1.5 block font-body text-xs font-semibold uppercase tracking-[0.06em] text-charcoal-500';
+
+const SettingsSkeleton = () => (
+  <div className="px-6 py-8" aria-busy="true" aria-label="Loading settings">
+    <Skeleton className="h-3 w-20" />
+    <Skeleton className="mt-2 h-9 w-32" />
+
+    <div className="mt-6 flex gap-1 rounded-xl bg-charcoal-50/70 p-1">
+      {[1, 2, 3].map((tab) => (
+        <Skeleton key={tab} className="h-10 flex-1 rounded-lg" />
+      ))}
+    </div>
+
+    <div className="mt-6 max-w-lg rounded-2xl border border-charcoal-200/70 bg-white shadow-sm">
+      <div className="flex items-center gap-3 border-b border-charcoal-100/70 px-5 py-4">
+        <Skeleton className="h-9 w-9 rounded-lg" />
+        <div className="space-y-1.5">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-3 w-44" />
+        </div>
+      </div>
+      <div className="space-y-5 p-5">
+        {[1, 2].map((field) => (
+          <div key={field} className="space-y-1.5">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+          </div>
+        ))}
+        <Skeleton className="h-10 w-32 rounded-xl" />
+      </div>
+    </div>
+  </div>
+);
 
 const Settings = () => {
   const dispatch = useDispatch();
@@ -143,6 +176,8 @@ const Settings = () => {
     email: notifPrefs[key]?.email ?? true,
     push: notifPrefs[key]?.push ?? true,
   });
+
+  if (!user) return <SettingsSkeleton />;
 
   return (
     <div className="px-6 py-8">
