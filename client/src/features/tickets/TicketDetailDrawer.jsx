@@ -5,6 +5,7 @@ import { MdClose, MdImage, MdVideocam, MdSend } from 'react-icons/md';
 import { format, formatDistanceToNow } from 'date-fns';
 import { fetchTicketById, transitionTicketStatus, addTicketNote, clearCurrentTicket } from '@store/slices/ticketSlice';
 import { approveEstimate } from '@services/job.api';
+import { rejectResolution as rejectResolutionApi } from '@services/ticket.api';
 
 const STATUS_COLORS = {
   REPORTED: 'bg-amber-400/20 text-amber-700',
@@ -35,12 +36,14 @@ const CATEGORY_COLORS = {
 const inputClass =
   'w-full rounded-xl border border-charcoal-200/90 bg-white px-4 py-2.5 text-charcoal-950 text-sm outline-none transition duration-200 placeholder:text-charcoal-400 placeholder:text-xs focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
 
-const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose }) => {
+const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole }) => {
   const dispatch = useDispatch();
   const { currentTicket, currentTicketLoading, operationLoading } = useSelector((s) => s.tickets);
   const [noteText, setNoteText] = useState('');
   const [approveLoading, setApproveLoading] = useState(false);
   const [localError, setLocalError] = useState('');
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
 
   const t = currentTicket;
 
@@ -73,6 +76,29 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose }) => {
       setLocalError(e?.response?.data?.message || e?.message || 'Failed to approve estimate');
     } finally {
       setApproveLoading(false);
+    }
+  };
+
+  const handleConfirmResolution = async () => {
+    setLocalError('');
+    try {
+      await dispatch(transitionTicketStatus({ id: ticketId, data: { status: 'RESOLVED' } })).unwrap();
+      dispatch(fetchTicketById(ticketId));
+    } catch (e) {
+      setLocalError(e || 'Failed to confirm resolution');
+    }
+  };
+
+  const handleRejectResolution = async () => {
+    if (!rejectReason.trim()) return;
+    setLocalError('');
+    try {
+      await rejectResolutionApi(ticketId, { reason: rejectReason.trim() });
+      dispatch(fetchTicketById(ticketId));
+      setRejectOpen(false);
+      setRejectReason('');
+    } catch (e) {
+      setLocalError(e?.response?.data?.message || e?.message || 'Failed to reject resolution');
     }
   };
 
@@ -376,7 +402,54 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose }) => {
                       Assign Contractor
                     </button>
                   )}
-                  {t.status === 'PENDING_REVIEW' && (
+                  {t.status === 'PENDING_REVIEW' && userRole === 'TENANT' && (
+                    <div className="flex w-full flex-col gap-3">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={handleConfirmResolution}
+                          disabled={operationLoading}
+                          className="flex-1 rounded-xl bg-sage-500 px-5 py-2.5 font-heading text-sm font-semibold text-white transition-colors hover:bg-sage-600 disabled:opacity-60"
+                        >
+                          {operationLoading ? 'Confirming...' : 'Confirm Resolution'}
+                        </button>
+                        <button
+                          onClick={() => setRejectOpen(true)}
+                          disabled={operationLoading}
+                          className="flex-1 rounded-xl border border-primary-200/80 bg-white px-5 py-2.5 font-heading text-sm font-semibold text-primary-600 transition-colors hover:bg-primary-50 disabled:opacity-60"
+                        >
+                          Reject Resolution
+                        </button>
+                      </div>
+                      {rejectOpen && (
+                        <div className="space-y-2 rounded-xl border border-charcoal-200/70 bg-charcoal-50/50 p-3">
+                          <textarea
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            placeholder="Reason for rejecting this resolution..."
+                            rows={3}
+                            className="w-full rounded-lg border border-charcoal-200/80 bg-white px-3 py-2 font-body text-sm text-charcoal-700 outline-none transition placeholder:text-charcoal-400 focus:border-primary-400 focus:ring-4 focus:ring-primary-100"
+                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={handleRejectResolution}
+                              disabled={!rejectReason.trim() || operationLoading}
+                              className="rounded-lg bg-primary-500 px-4 py-1.5 font-heading text-xs font-semibold text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
+                            >
+                              {operationLoading ? 'Submitting...' : 'Submit'}
+                            </button>
+                            <button
+                              onClick={() => { setRejectOpen(false); setRejectReason(''); }}
+                              disabled={operationLoading}
+                              className="rounded-lg border border-charcoal-200/70 bg-white px-4 py-1.5 font-body text-xs font-medium text-charcoal-600 transition-colors hover:bg-charcoal-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {t.status === 'PENDING_REVIEW' && userRole !== 'TENANT' && (
                     <>
                       {t.jobId && (
                         <button
