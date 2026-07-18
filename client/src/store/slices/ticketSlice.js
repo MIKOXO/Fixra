@@ -1,9 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
+  createTicket as createTicketApi,
   getTickets as getTicketsApi,
   getTicketById as getTicketByIdApi,
   transitionStatus as transitionStatusApi,
   addNote as addNoteApi,
+  uploadAttachment as uploadAttachmentApi,
 } from '@services/ticket.api';
 
 export const fetchTickets = createAsyncThunk(
@@ -54,6 +56,30 @@ export const addTicketNote = createAsyncThunk(
   }
 );
 
+export const createTicket = createAsyncThunk(
+  'tickets/createTicket',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await createTicketApi(data);
+      return response.ticket || response.data || response;
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error?.message || 'Failed to create ticket');
+    }
+  }
+);
+
+export const uploadTicketAttachment = createAsyncThunk(
+  'tickets/uploadTicketAttachment',
+  async ({ id, file }, { rejectWithValue }) => {
+    try {
+      const response = await uploadAttachmentApi(id, file);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error?.message || 'Failed to upload attachment');
+    }
+  }
+);
+
 const initialState = {
   tickets: [],
   isLoading: false,
@@ -62,6 +88,8 @@ const initialState = {
   currentTicketLoading: false,
   currentTicketError: null,
   operationLoading: false,
+  submitting: false,
+  uploadProgress: 0,
 };
 
 const ticketSlice = createSlice({
@@ -133,6 +161,29 @@ const ticketSlice = createSlice({
         }
       })
       .addCase(addTicketNote.rejected, (state, action) => {
+        state.operationLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(createTicket.pending, (state) => {
+        state.submitting = true;
+        state.error = null;
+      })
+      .addCase(createTicket.fulfilled, (state, action) => {
+        state.submitting = false;
+        state.tickets.unshift(action.payload);
+      })
+      .addCase(createTicket.rejected, (state, action) => {
+        state.submitting = false;
+        state.error = action.payload;
+      })
+      .addCase(uploadTicketAttachment.pending, (state) => {
+        state.operationLoading = true;
+        state.error = null;
+      })
+      .addCase(uploadTicketAttachment.fulfilled, (state) => {
+        state.operationLoading = false;
+      })
+      .addCase(uploadTicketAttachment.rejected, (state, action) => {
         state.operationLoading = false;
         state.error = action.payload;
       });
