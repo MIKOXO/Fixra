@@ -1,14 +1,50 @@
-import { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MdChevronLeft, MdChevronRight, MdLogout } from 'react-icons/md';
+import { MdChevronLeft, MdChevronRight, MdLogout, MdMoreVert } from 'react-icons/md';
 import useAuth from '@hooks/useAuth';
 import Tooltip from '@components/ui/Tooltip';
 
 const STORAGE_KEY = 'fixra-sidebar-collapsed';
 
 const Sidebar = ({ navItems = [], role = '' }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setIsMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [isMenuOpen]);
+
+  const handleLogout = useCallback(async () => {
+    setIsMenuOpen(false);
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      navigate('/', { replace: true });
+    } catch {
+      navigate('/', { replace: true });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }, [logout, navigate, isLoggingOut]);
 
   const [isCollapsed, setIsCollapsed] = useState(() => {
     try {
@@ -158,18 +194,26 @@ const Sidebar = ({ navItems = [], role = '' }) => {
         </ul>
       </nav>
 
-      {/* User profile */}
-      <div className="shrink-0 border-t border-charcoal-200/70 p-2">
+      {/* User profile & menu */}
+      <div ref={menuRef} className="relative shrink-0 border-t border-charcoal-200/70 p-2">
         {isCollapsed ? (
-          <Tooltip label={user?.name || 'Profile'} side="right" className="w-full flex justify-center">
-            <div className="flex h-10 w-full items-center justify-center rounded-xl transition-colors duration-200 hover:bg-charcoal-50 cursor-pointer">
+          <div className="flex flex-col items-center">
+            <div className="flex h-10 w-full items-center justify-center rounded-xl">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 shadow-[0_2px_8px_rgba(232,93,58,0.20)]">
                 <span className="font-heading text-xs font-bold text-white">
                   {initials}
                 </span>
               </div>
             </div>
-          </Tooltip>
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((o) => !o)}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-charcoal-400 transition-colors duration-200 hover:bg-charcoal-50 hover:text-charcoal-700"
+              aria-label="User menu"
+            >
+              <MdMoreVert className="h-4 w-4" />
+            </button>
+          </div>
         ) : (
           <div className="flex items-center overflow-hidden rounded-xl px-3 py-2.5">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 shadow-[0_2px_8px_rgba(232,93,58,0.20)]">
@@ -190,8 +234,39 @@ const Sidebar = ({ navItems = [], role = '' }) => {
                 {user?.email}
               </p>
             </motion.div>
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((o) => !o)}
+              className="ml-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-charcoal-400 transition-colors duration-200 hover:bg-charcoal-50 hover:text-charcoal-700"
+              aria-label="User menu"
+            >
+              <MdMoreVert className="h-4 w-4" />
+            </button>
           </div>
         )}
+
+        {/* Dropdown menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 4, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 4, scale: 0.95 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className={`absolute bottom-full mb-2 w-48 overflow-hidden rounded-xl border border-charcoal-200/70 bg-white shadow-[0_8px_30px_rgba(26,26,31,0.12)] z-50 ${isCollapsed ? 'left-0' : 'right-0'}`}
+            >
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-red-500 transition-colors duration-150 hover:bg-red-50 disabled:opacity-50"
+              >
+                <MdLogout className="h-4 w-4 shrink-0" />
+                {isLoggingOut ? 'Logging out...' : 'Log out'}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.aside>
   );
