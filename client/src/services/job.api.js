@@ -12,5 +12,8 @@ export const rejectEstimate = (id, data) =>
 export const dispatchTechnician = (id, data) =>
   api.patch(`/jobs/${id}/dispatch`, data).then((res) => res.data);
 
+export const getJobByTicket = (ticketId) =>
+  api.get(`/jobs/ticket/${ticketId}`).then((res) => res.data);
+
 export const getReceipt = (id) =>
   api.get(`/jobs/${id}/receipt`).then((res) => res.data);

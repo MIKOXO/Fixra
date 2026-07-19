@@ -5,3 +5,6 @@ export const getContractors = () =>
 
 export const revokeContractor = (linkId) =>
   api.delete(`/contractors/${linkId}`).then((res) => res.data);
+
+export const getTechnicians = () =>
+  api.get('/contractors/technicians').then((res) => res.data);
