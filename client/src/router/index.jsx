@@ -28,9 +28,14 @@ import TenantSubmitTicket from '@pages/dashboard/Tenant/SubmitTicket';
 import TenantTickets from '@pages/dashboard/Tenant/Tickets';
 import TenantSettings from '@pages/dashboard/Tenant/Settings';
 import TechnicianDashboard from '@pages/dashboard/Technician/Home';
-import ContractorDashboard from '@pages/dashboard/Contractor/Home';
+import ContractorHome from '@pages/dashboard/Contractor/Home';
+import ContractorJobs from '@pages/dashboard/Contractor/Jobs';
+import ContractorTechnicians from '@pages/dashboard/Contractor/Technicians';
+import ContractorProfile from '@pages/dashboard/Contractor/Profile';
+import ContractorAnalytics from '@pages/dashboard/Contractor/Analytics';
+import ContractorSettings from '@pages/dashboard/Contractor/Settings';
 import SuperAdminDashboard from '@pages/dashboard/SuperAdmin/Home';
-import { landlordNav, tenantNav } from '@constants/navItems';
+import { landlordNav, tenantNav, contractorNav } from '@constants/navItems';
 import ProtectedRoute from './ProtectedRoute';
 import RoleGuard from './RoleGuard';
 
@@ -155,9 +160,17 @@ const router = createBrowserRouter([
             path: '/contractor',
             element: (
               <RoleGuard requiredRole='CONTRACTOR'>
-                <ContractorDashboard />
+                <DashboardLayout navItems={contractorNav} role='Contractor' />
               </RoleGuard>
             ),
+            children: [
+              { index: true, element: <ContractorHome /> },
+              { path: 'jobs', element: <ContractorJobs /> },
+              { path: 'technicians', element: <ContractorTechnicians /> },
+              { path: 'profile', element: <ContractorProfile /> },
+              { path: 'analytics', element: <ContractorAnalytics /> },
+              { path: 'settings', element: <ContractorSettings /> },
+            ],
           },
           {
             path: '/admin',
