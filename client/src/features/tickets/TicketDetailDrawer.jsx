@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MdClose, MdImage, MdVideocam, MdSend } from 'react-icons/md';
 import { format, formatDistanceToNow } from 'date-fns';
 import { fetchTicketById, transitionTicketStatus, addTicketNote, clearCurrentTicket } from '@store/slices/ticketSlice';
-import { approveEstimate } from '@services/job.api';
+import { approveEstimate, getJobByTicket } from '@services/job.api';
 import { rejectResolution as rejectResolutionApi } from '@services/ticket.api';
 
 const STATUS_COLORS = {
@@ -36,7 +36,7 @@ const CATEGORY_COLORS = {
 const inputClass =
   'w-full rounded-xl border border-charcoal-200/90 bg-white px-4 py-2.5 text-charcoal-950 text-sm outline-none transition duration-200 placeholder:text-charcoal-400 placeholder:text-xs focus:border-primary-400 focus:ring-4 focus:ring-primary-100';
 
-const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole }) => {
+const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole, onSubmitEstimate, onDispatchTechnician }) => {
   const dispatch = useDispatch();
   const { currentTicket, currentTicketLoading, operationLoading } = useSelector((s) => s.tickets);
   const [noteText, setNoteText] = useState('');
@@ -44,8 +44,30 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole }) =
   const [localError, setLocalError] = useState('');
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [currentJob, setCurrentJob] = useState(null);
+  const [jobLoading, setJobLoading] = useState(false);
 
   const t = currentTicket;
+
+  useEffect(() => {
+    if (!isOpen || !t?.jobId || userRole !== 'CONTRACTOR') {
+      setCurrentJob(null);
+      return;
+    }
+    let cancelled = false;
+    setJobLoading(true);
+    getJobByTicket(ticketId)
+      .then((res) => {
+        if (!cancelled) setCurrentJob(res.job || res.data || res);
+      })
+      .catch(() => {
+        if (!cancelled) setCurrentJob(null);
+      })
+      .finally(() => {
+        if (!cancelled) setJobLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [isOpen, t?.jobId, ticketId, userRole]);
 
   const handleTriage = async () => {
     try {
@@ -262,6 +284,53 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole }) =
                       </div>
                     </div>
 
+                    {userRole === 'CONTRACTOR' && t.jobId && (
+                      <div className="rounded-xl border border-charcoal-100 bg-charcoal-50/50 p-4">
+                        <h3 className="font-heading text-xs font-semibold uppercase tracking-[0.08em] text-charcoal-500">
+                          Job Estimate
+                        </h3>
+                        {jobLoading ? (
+                          <div className="mt-2 space-y-2">
+                            <div className="h-4 w-1/2 animate-pulse rounded bg-charcoal-200/60" />
+                            <div className="h-4 w-1/3 animate-pulse rounded bg-charcoal-200/60" />
+                          </div>
+                        ) : currentJob ? (
+                          <div className="mt-2 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-body text-xs text-charcoal-500">Estimated Cost</span>
+                              <span className="font-body text-sm font-semibold text-charcoal-900">
+                                ${currentJob.estimatedCost?.toLocaleString() ?? '-'}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="font-body text-xs text-charcoal-500">Approval</span>
+                              <span
+                                className={`rounded-full px-2 py-0.5 font-body text-[11px] font-semibold ${
+                                  currentJob.approvalStatus === 'APPROVED'
+                                    ? 'bg-sage-100 text-sage-700'
+                                    : currentJob.approvalStatus === 'REJECTED'
+                                      ? 'bg-primary-100 text-primary-700'
+                                      : 'bg-amber-100 text-amber-700'
+                                }`}
+                              >
+                                {currentJob.approvalStatus || 'PENDING'}
+                              </span>
+                            </div>
+                            {currentJob.technicianId && (
+                              <div className="flex items-center justify-between">
+                                <span className="font-body text-xs text-charcoal-500">Assigned To</span>
+                                <span className="font-body text-sm text-charcoal-700">
+                                  {currentJob.technicianId?.name || '-'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="mt-2 font-body text-xs text-charcoal-400">Job details unavailable.</p>
+                        )}
+                      </div>
+                    )}
+
                     {t.attachments && t.attachments.length > 0 && (
                       <div>
                         <h3 className="font-heading text-xs font-semibold uppercase tracking-[0.08em] text-charcoal-500">
@@ -381,7 +450,7 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole }) =
 
               {t && !currentTicketLoading && (
                 <div className="flex items-center gap-3 border-t border-charcoal-100 px-6 py-4">
-                  {t.status === 'REPORTED' && (
+                  {t.status === 'REPORTED' && userRole !== 'CONTRACTOR' && (
                     <button
                       onClick={handleTriage}
                       disabled={operationLoading}
@@ -390,7 +459,7 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole }) =
                       {operationLoading ? 'Triage...' : 'Triage'}
                     </button>
                   )}
-                  {t.status === 'TRIAGED' && (
+                  {t.status === 'TRIAGED' && userRole !== 'CONTRACTOR' && (
                     <button
                       onClick={() => {
                         handleCloseDrawer();
@@ -401,6 +470,38 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole }) =
                     >
                       Assign Contractor
                     </button>
+                  )}
+                  {userRole === 'CONTRACTOR' && t.status === 'ASSIGNED' && !t.jobId && (
+                    <button
+                      onClick={() => {
+                        handleCloseDrawer();
+                        onSubmitEstimate?.(t);
+                      }}
+                      className="flex-1 rounded-xl bg-primary-500 px-5 py-2.5 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                    >
+                      Submit Estimate
+                    </button>
+                  )}
+                  {userRole === 'CONTRACTOR' && t.status === 'ASSIGNED' && !!t.jobId && (
+                    <p className="w-full text-center font-body text-xs text-charcoal-400">
+                      Awaiting landlord approval
+                    </p>
+                  )}
+                  {userRole === 'CONTRACTOR' && t.status === 'IN_PROGRESS' && t.jobId && !currentJob?.technicianId && (
+                    <button
+                      onClick={() => {
+                        handleCloseDrawer();
+                        onDispatchTechnician?.(t);
+                      }}
+                      className="flex-1 rounded-xl bg-primary-500 px-5 py-2.5 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                    >
+                      Dispatch Technician
+                    </button>
+                  )}
+                  {userRole === 'CONTRACTOR' && t.status === 'IN_PROGRESS' && currentJob?.technicianId && (
+                    <p className="w-full text-center font-body text-xs text-charcoal-400">
+                      Technician assigned — work in progress
+                    </p>
                   )}
                   {t.status === 'PENDING_REVIEW' && userRole === 'TENANT' && (
                     <div className="flex w-full flex-col gap-3">
@@ -449,7 +550,7 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole }) =
                       )}
                     </div>
                   )}
-                  {t.status === 'PENDING_REVIEW' && userRole !== 'TENANT' && (
+                  {t.status === 'PENDING_REVIEW' && userRole !== 'TENANT' && userRole !== 'CONTRACTOR' && (
                     <>
                       {t.jobId && (
                         <button
@@ -469,7 +570,7 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole }) =
                       </button>
                     </>
                   )}
-                  {!['REPORTED', 'TRIAGED', 'PENDING_REVIEW'].includes(t.status) && (
+                  {!['REPORTED', 'TRIAGED', 'PENDING_REVIEW', 'ASSIGNED', 'IN_PROGRESS'].includes(t.status) && (
                     <p className="w-full text-center font-body text-xs text-charcoal-400">
                       No actions available
                     </p>
