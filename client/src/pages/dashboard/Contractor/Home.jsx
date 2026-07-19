@@ -1,93 +1,107 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { format } from 'date-fns';
+import { MdBuild, MdPeople, MdPerson, MdBarChart, MdSettings } from 'react-icons/md';
 import useAuth from '@hooks/useAuth';
 
-const Home = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/', { replace: true });
-  };
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, ease: [0.25, 0.1, 0.25, 1] },
+  },
+};
+
+const QUICK_LINKS = [
+  { label: 'Jobs', icon: MdBuild },
+  { label: 'Technicians', icon: MdPeople },
+  { label: 'Profile', icon: MdPerson },
+  { label: 'Analytics', icon: MdBarChart },
+  { label: 'Settings', icon: MdSettings },
+];
+
+const Home = () => {
+  const { user } = useAuth();
+
+  const email = useMemo(() => user?.email ?? '—', [user]);
+  const name = useMemo(() => user?.name ?? 'Contractor', [user]);
 
   return (
-    <div className="min-h-screen bg-surface-warm">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(232,93,58,0.10),_transparent_30%),radial-gradient(circle_at_80%_25%,_rgba(86,129,89,0.12),_transparent_28%),linear-gradient(180deg,_#faf8f6,_#f5f0eb)]" />
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10">
-        <header className="flex items-center justify-between gap-4 rounded-[2rem] border border-charcoal-200/70 bg-white/80 px-6 py-4 shadow-[0_20px_70px_rgba(26,26,31,0.08)] backdrop-blur">
-          <div>
-            <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-primary-500">
-              Fixra dashboard
+    <div className="px-6 py-8">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-8"
+      >
+        <motion.div variants={itemVariants}>
+          <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-primary-500">
+            {format(new Date(), 'EEEE, MMMM d, yyyy')}
+          </p>
+          <h1 className="mt-1 font-heading text-3xl font-bold text-charcoal-950">
+            {getGreeting()}, {name}
+          </h1>
+          <p className="mt-2 font-body text-sm text-charcoal-500">
+            Manage your jobs, coordinate your technicians, and track your
+            performance across assigned properties.
+          </p>
+        </motion.div>
+
+        <motion.section
+          variants={itemVariants}
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          <div className="rounded-2xl border border-charcoal-200/70 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-charcoal-500">
+              Email
             </p>
-            <h1 className="mt-2 font-heading text-2xl font-bold text-charcoal-950">
-              Contractor workspace
-            </h1>
+            <p className="mt-2 text-sm font-medium text-charcoal-900">{email}</p>
           </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="rounded-full border border-charcoal-300 bg-white px-5 py-3 font-heading text-sm font-semibold text-charcoal-900 transition-colors hover:bg-charcoal-50"
-          >
-            Log out
-          </button>
-        </header>
-
-        <main className="mt-8 grid flex-1 gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <section className="rounded-[2rem] border border-charcoal-200/70 bg-white/90 p-8 shadow-[0_24px_90px_rgba(26,26,31,0.10)] backdrop-blur">
-            <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-primary-500">
-              Signed in as
+          <div className="rounded-2xl border border-charcoal-200/70 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-charcoal-500">
+              Role
             </p>
-            <h2 className="mt-4 font-heading text-4xl font-bold text-charcoal-950">
-              Welcome, {user?.name}
-            </h2>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-charcoal-600">
-              Manage your projects, coordinate with landlords, and track work
-              across multiple properties.
-            </p>
+            <p className="mt-2 text-sm font-medium text-charcoal-900">Contractor</p>
+          </div>
+        </motion.section>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl bg-surface-mist px-5 py-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-charcoal-500">
-                  Email
-                </p>
-                <p className="mt-2 text-sm font-medium text-charcoal-900">{user?.email}</p>
-              </div>
-              <div className="rounded-3xl bg-surface-mist px-5 py-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-charcoal-500">
-                  Role
-                </p>
-                <p className="mt-2 text-sm font-medium text-charcoal-900">Contractor</p>
-              </div>
-            </div>
-          </section>
-
-          <aside className="rounded-[2rem] border border-charcoal-200/70 bg-charcoal-950 p-8 text-white shadow-[0_24px_90px_rgba(26,26,31,0.16)]">
-            <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-sage-200">
-              Quick links
-            </p>
-            <div className="mt-4 space-y-3">
-              <div className="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
-                <p className="text-sm font-medium text-white/70">Projects</p>
-                <p className="mt-1 text-sm leading-6 text-white/85">
-                  View your active projects and their progress.
+        <motion.section variants={itemVariants}>
+          <h2 className="font-heading text-lg font-bold text-charcoal-950">
+            Quick Links
+          </h2>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {QUICK_LINKS.map(({ label, icon: Icon }) => (
+              <div
+                key={label}
+                className="flex flex-col items-center gap-3 rounded-2xl border border-charcoal-200/70 bg-white p-5 text-center shadow-sm"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50">
+                  <Icon className="text-lg text-primary-500" />
+                </div>
+                <p className="font-heading text-sm font-semibold text-charcoal-950">
+                  {label}
                 </p>
               </div>
-              <div className="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
-                <p className="text-sm font-medium text-white/70">Clients</p>
-                <p className="mt-1 text-sm leading-6 text-white/85">
-                  Manage your landlord relationships and contracts.
-                </p>
-              </div>
-            </div>
-            <Link
-              to="/"
-              className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-white px-6 py-3 font-heading text-sm font-semibold text-charcoal-950 transition-colors hover:bg-charcoal-100"
-            >
-              Back to landing
-            </Link>
-          </aside>
-        </main>
-      </div>
+            ))}
+          </div>
+        </motion.section>
+      </motion.div>
     </div>
   );
 };
