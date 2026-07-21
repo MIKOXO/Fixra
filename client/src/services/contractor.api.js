@@ -8,3 +8,9 @@ export const revokeContractor = (linkId) =>
 
 export const getTechnicians = () =>
   api.get('/contractors/technicians').then((res) => res.data);
+
+export const updateTechnicianAvailability = (id, isAvailable) =>
+  api.patch(`/contractors/technicians/${id}/availability`, { isAvailable }).then((res) => res.data);
+
+export const deactivateTechnician = (id) =>
+  api.delete(`/contractors/technicians/${id}`).then((res) => res.data);
