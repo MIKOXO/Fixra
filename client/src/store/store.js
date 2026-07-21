@@ -5,6 +5,7 @@ import ticketReducer from './slices/ticketSlice';
 import propertyReducer from './slices/propertySlice';
 import contractorReducer from './slices/contractorSlice';
 import jobReducer from './slices/jobSlice';
+import technicianReducer from './slices/technicianSlice';
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     properties: propertyReducer,
     contractors: contractorReducer,
     jobs: jobReducer,
+    technicians: technicianReducer,
   },
 });
 
