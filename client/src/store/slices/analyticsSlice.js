@@ -4,7 +4,20 @@ import {
   getTechnicianPerformance as getTechnicianPerformanceApi,
   getCostPerProperty as getCostPerPropertyApi,
   getMaintenanceFrequency as getMaintenanceFrequencyApi,
+  getContractorPerformance as getContractorPerformanceApi,
 } from '@services/analytics.api';
+
+export const fetchContractorStats = createAsyncThunk(
+  'analytics/fetchContractorStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getContractorPerformanceApi();
+      return response.data || response;
+    } catch (error) {
+      return rejectWithValue(error?.message || 'Failed to load analytics');
+    }
+  }
+);
 
 export const fetchLandlordStats = createAsyncThunk(
   'analytics/fetchLandlordStats',
@@ -34,7 +47,9 @@ const initialState = {
   technicianPerformance: null,
   costPerProperty: null,
   maintenanceFrequency: null,
+  contractorStats: null,
   isLoading: false,
+  contractorLoading: false,
   error: null,
 };
 
@@ -57,6 +72,18 @@ const analyticsSlice = createSlice({
       })
       .addCase(fetchLandlordStats.rejected, (state, action) => {
         state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchContractorStats.pending, (state) => {
+        state.contractorLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchContractorStats.fulfilled, (state, action) => {
+        state.contractorLoading = false;
+        state.contractorStats = action.payload;
+      })
+      .addCase(fetchContractorStats.rejected, (state, action) => {
+        state.contractorLoading = false;
         state.error = action.payload;
       });
   },
