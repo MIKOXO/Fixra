@@ -222,4 +222,45 @@ const getMaintenanceFrequency = async (landlordId) => {
   return results;
 };
 
-export { getAvgResolutionTime, getCostPerProperty, getMaintenanceFrequency, getTechnicianPerformance };
+const getContractorPerformance = async (contractorId) => {
+  const cid = new mongoose.Types.ObjectId(contractorId);
+
+  const tickets = await Ticket.find({ contractorId: cid }).lean();
+
+  const resolved = tickets.filter((t) => ['RESOLVED', 'CLOSED'].includes(t.status));
+
+  const jobsCompleted = resolved.length;
+
+  const resolutionHours = resolved
+    .map((t) => {
+      const entry = t.auditTrail?.find((e) => e.toStatus === 'RESOLVED');
+      if (!entry) return null;
+      return (new Date(entry.timestamp) - new Date(t.createdAt)) / (1000 * 60 * 60);
+    })
+    .filter((h) => h !== null);
+
+  const avgResolutionTime =
+    resolutionHours.length > 0
+      ? Math.round((resolutionHours.reduce((a, b) => a + b, 0) / resolutionHours.length) * 10) / 10
+      : null;
+
+  const reopened = tickets.filter((t) => (t.reopenCount ?? 0) > 0).length;
+  const reopenRate =
+    tickets.length > 0 ? Math.round((reopened / tickets.length) * 1000) / 1000 : null;
+
+  const monthMap = {};
+  resolved.forEach((t) => {
+    const entry = t.auditTrail?.find((e) => e.toStatus === 'RESOLVED');
+    const date = entry ? new Date(entry.timestamp) : new Date(t.createdAt);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    monthMap[key] = (monthMap[key] || 0) + 1;
+  });
+
+  const jobsByMonth = Object.entries(monthMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, count]) => ({ month, count }));
+
+  return { jobsCompleted, avgResolutionTime, reopenRate, jobsByMonth };
+};
+
+export { getAvgResolutionTime, getCostPerProperty, getMaintenanceFrequency, getTechnicianPerformance, getContractorPerformance };

@@ -3,6 +3,7 @@ import {
   getCostPerProperty,
   getMaintenanceFrequency,
   getTechnicianPerformance,
+  getContractorPerformance,
 } from '../services/analytics.service.js';
 
 const resolutionTimeHandler = async (req, res, next) => {
@@ -46,4 +47,13 @@ const maintenanceFrequencyHandler = async (req, res, next) => {
   }
 };
 
-export { costPerPropertyHandler, maintenanceFrequencyHandler, resolutionTimeHandler, technicianPerformanceHandler };
+const contractorPerformanceHandler = async (req, res, next) => {
+  try {
+    const data = await getContractorPerformance(req.user.id);
+    return res.status(200).json({ data });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export { costPerPropertyHandler, maintenanceFrequencyHandler, resolutionTimeHandler, technicianPerformanceHandler, contractorPerformanceHandler };

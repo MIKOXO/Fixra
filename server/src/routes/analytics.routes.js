@@ -6,6 +6,7 @@ import {
   maintenanceFrequencyHandler,
   resolutionTimeHandler,
   technicianPerformanceHandler,
+  contractorPerformanceHandler,
 } from '../controllers/analytics.controller.js';
 
 const router = Router();
@@ -14,5 +15,6 @@ router.get('/resolution-time', authMiddleware, requireRole('LANDLORD'), resoluti
 router.get('/technician-performance', authMiddleware, requireRole('LANDLORD'), technicianPerformanceHandler);
 router.get('/cost-per-property', authMiddleware, requireRole('LANDLORD'), costPerPropertyHandler);
 router.get('/maintenance-frequency', authMiddleware, requireRole('LANDLORD'), maintenanceFrequencyHandler);
+router.get('/contractor-performance', authMiddleware, requireRole('CONTRACTOR'), contractorPerformanceHandler);
 
 export default router;
