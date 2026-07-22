@@ -5,11 +5,20 @@ import connectDB from './config/db.js';
 import { initSocket } from './sockets/index.js';
 import { notificationWorker } from './queues/processors/notification.processor.js';
 import { escalationWorker } from './queues/processors/escalation.processor.js';
+import { redis } from './config/redis.js';
 
 const port = process.env.PORT || 5000;
 
 const start = async () => {
   await connectDB();
+
+  if (redis) {
+    try {
+      await redis.connect();
+    } catch {
+      console.warn('Redis connection failed; queues disabled');
+    }
+  }
 
   const server = http.createServer(app);
   initSocket(server);
