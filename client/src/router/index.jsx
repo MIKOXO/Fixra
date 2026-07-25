@@ -27,7 +27,11 @@ import TenantHome from '@pages/dashboard/Tenant/Home';
 import TenantSubmitTicket from '@pages/dashboard/Tenant/SubmitTicket';
 import TenantTickets from '@pages/dashboard/Tenant/Tickets';
 import TenantSettings from '@pages/dashboard/Tenant/Settings';
-import TechnicianDashboard from '@pages/dashboard/Technician/Home';
+import TechnicianHome from '@pages/dashboard/Technician/Home';
+import TechnicianAssignments from '@pages/dashboard/Technician/Assignments';
+import TechnicianSchedule from '@pages/dashboard/Technician/Schedule';
+import TechnicianProfile from '@pages/dashboard/Technician/Profile';
+import TechnicianSettings from '@pages/dashboard/Technician/Settings';
 import ContractorHome from '@pages/dashboard/Contractor/Home';
 import ContractorJobs from '@pages/dashboard/Contractor/Jobs';
 import ContractorTechnicians from '@pages/dashboard/Contractor/Technicians';
@@ -35,7 +39,7 @@ import ContractorProfile from '@pages/dashboard/Contractor/Profile';
 import ContractorAnalytics from '@pages/dashboard/Contractor/Analytics';
 import ContractorSettings from '@pages/dashboard/Contractor/Settings';
 import SuperAdminDashboard from '@pages/dashboard/SuperAdmin/Home';
-import { landlordNav, tenantNav, contractorNav } from '@constants/navItems';
+import { landlordNav, tenantNav, contractorNav, technicianNav } from '@constants/navItems';
 import ProtectedRoute from './ProtectedRoute';
 import RoleGuard from './RoleGuard';
 
@@ -152,9 +156,16 @@ const router = createBrowserRouter([
             path: '/technician',
             element: (
               <RoleGuard requiredRole='TECHNICIAN'>
-                <TechnicianDashboard />
+                <DashboardLayout navItems={technicianNav} role='Technician' />
               </RoleGuard>
             ),
+            children: [
+              { index: true, element: <TechnicianHome /> },
+              { path: 'assignments', element: <TechnicianAssignments /> },
+              { path: 'schedule', element: <TechnicianSchedule /> },
+              { path: 'profile', element: <TechnicianProfile /> },
+              { path: 'settings', element: <TechnicianSettings /> },
+            ],
           },
           {
             path: '/contractor',
