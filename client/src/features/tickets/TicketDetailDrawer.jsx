@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MdClose, MdImage, MdVideocam, MdSend } from 'react-icons/md';
+import { MdClose, MdImage, MdVideocam, MdSend, MdUpload } from 'react-icons/md';
 import { format, formatDistanceToNow } from 'date-fns';
-import { fetchTicketById, transitionTicketStatus, addTicketNote, clearCurrentTicket } from '@store/slices/ticketSlice';
+import { fetchTicketById, transitionTicketStatus, addTicketNote, uploadTicketAttachment, clearCurrentTicket } from '@store/slices/ticketSlice';
 import { approveEstimate, getJobByTicket } from '@services/job.api';
 import { rejectResolution as rejectResolutionApi } from '@services/ticket.api';
 
@@ -46,6 +46,8 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole, onS
   const [rejectReason, setRejectReason] = useState('');
   const [currentJob, setCurrentJob] = useState(null);
   const [jobLoading, setJobLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const t = currentTicket;
 
@@ -133,6 +135,32 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole, onS
       setNoteText('');
     } catch (e) {
       setLocalError(e || 'Failed to add note');
+    }
+  };
+
+  const handleUploadPhoto = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLocalError('');
+    setUploading(true);
+    try {
+      await dispatch(uploadTicketAttachment({ id: ticketId, file })).unwrap();
+      dispatch(fetchTicketById(ticketId));
+    } catch (err) {
+      setLocalError(err || 'Failed to upload photo');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleMarkPendingReview = async () => {
+    setLocalError('');
+    try {
+      await dispatch(transitionTicketStatus({ id: ticketId, data: { status: 'PENDING_REVIEW' } })).unwrap();
+      dispatch(fetchTicketById(ticketId));
+    } catch (e) {
+      setLocalError(e || 'Failed to update status');
     }
   };
 
@@ -360,6 +388,31 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole, onS
                       </div>
                     )}
 
+                    {userRole === 'TECHNICIAN' && (
+                      <div>
+                        <h3 className="font-heading text-xs font-semibold uppercase tracking-[0.08em] text-charcoal-500">
+                          Upload Photo
+                        </h3>
+                        <div className="mt-2">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*,video/*"
+                            onChange={handleUploadPhoto}
+                            className="hidden"
+                          />
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            className="flex items-center gap-2 rounded-xl border border-dashed border-charcoal-300 bg-charcoal-50/50 px-4 py-3 font-body text-xs text-charcoal-600 transition-colors hover:border-primary-400 hover:bg-primary-50/50 disabled:opacity-50"
+                          >
+                            <MdUpload className="text-base text-charcoal-400" />
+                            {uploading ? 'Uploading...' : 'Click to upload photo or video'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {t.auditTrail && t.auditTrail.length > 0 && (
                       <div>
                         <h3 className="font-heading text-xs font-semibold uppercase tracking-[0.08em] text-charcoal-500">
@@ -569,6 +622,15 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole, onS
                         {operationLoading ? 'Closing...' : 'Close'}
                       </button>
                     </>
+                  )}
+                  {userRole === 'TECHNICIAN' && t.status === 'IN_PROGRESS' && (
+                    <button
+                      onClick={handleMarkPendingReview}
+                      disabled={operationLoading}
+                      className="flex-1 rounded-xl bg-primary-500 px-5 py-2.5 font-heading text-sm font-semibold text-white transition-colors hover:bg-primary-600 disabled:opacity-60"
+                    >
+                      {operationLoading ? 'Updating...' : 'Mark as Pending Review'}
+                    </button>
                   )}
                   {!['REPORTED', 'TRIAGED', 'PENDING_REVIEW', 'ASSIGNED', 'IN_PROGRESS'].includes(t.status) && (
                     <p className="w-full text-center font-body text-xs text-charcoal-400">
