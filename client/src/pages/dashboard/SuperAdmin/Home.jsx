@@ -1,93 +1,108 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { motion } from 'framer-motion';
+import { format } from 'date-fns';
+import {
+  MdPeople,
+  MdApartment,
+  MdConfirmationNumber,
+  MdDashboard,
+} from 'react-icons/md';
+import Skeleton from '@components/ui/Skeleton';
 import useAuth from '@hooks/useAuth';
 
-const Home = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+const containerVariants = {
+  visible: {
+    transition: {
+      staggerChildren: 0.13,
+      delayChildren: 0.06,
+    },
+  },
+};
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/', { replace: true });
-  };
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, ease: [0.25, 0.1, 0.25, 1] },
+  },
+};
+
+function PageSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-x-6 gap-y-6 lg:grid-cols-2">
+      <div className="space-y-2 lg:col-span-2">
+        <Skeleton className="h-3 w-36" />
+        <Skeleton className="h-7 w-56" />
+      </div>
+      <Skeleton className="h-[196px] rounded-2xl" />
+      <Skeleton className="h-[196px] rounded-2xl" />
+    </div>
+  );
+}
+
+const Home = () => {
+  const { user } = useAuth();
+
+  const name = useMemo(
+    () => user?.name?.split(' ')[0] || 'there',
+    [user]
+  );
 
   return (
-    <div className="min-h-screen bg-surface-warm">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(232,93,58,0.10),_transparent_30%),radial-gradient(circle_at_80%_25%,_rgba(86,129,89,0.12),_transparent_28%),linear-gradient(180deg,_#faf8f6,_#f5f0eb)]" />
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10">
-        <header className="flex items-center justify-between gap-4 rounded-[2rem] border border-charcoal-200/70 bg-white/80 px-6 py-4 shadow-[0_20px_70px_rgba(26,26,31,0.08)] backdrop-blur">
-          <div>
-            <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-primary-500">
-              Fixra dashboard
+    <div className="px-6 py-8">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 gap-x-6 gap-y-6 lg:grid-cols-2"
+      >
+        <motion.div variants={itemVariants} className="lg:col-span-2">
+          <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.35em] text-primary-500">
+            {format(new Date(), 'EEEE, MMMM d, yyyy')}
+          </p>
+          <h1 className="mt-1 font-heading text-2xl font-bold text-charcoal-950">
+            Welcome back, {name}
+          </h1>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <div className="rounded-2xl border border-charcoal-200/70 bg-white p-6 shadow-sm">
+            <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.2em] text-charcoal-500">
+              Platform Overview
             </p>
-            <h1 className="mt-2 font-heading text-2xl font-bold text-charcoal-950">
-              Admin workspace
-            </h1>
+            <p className="mt-2 font-heading text-5xl font-bold text-charcoal-950">
+              Admin
+            </p>
+            <p className="mt-3 font-body text-sm text-charcoal-500">
+              Manage users, monitor properties, and oversee platform activity.
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="rounded-full border border-charcoal-300 bg-white px-5 py-3 font-heading text-sm font-semibold text-charcoal-900 transition-colors hover:bg-charcoal-50"
-          >
-            Log out
-          </button>
-        </header>
+        </motion.div>
 
-        <main className="mt-8 grid flex-1 gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <section className="rounded-[2rem] border border-charcoal-200/70 bg-white/90 p-8 shadow-[0_24px_90px_rgba(26,26,31,0.10)] backdrop-blur">
-            <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-primary-500">
-              Signed in as
-            </p>
-            <h2 className="mt-4 font-heading text-4xl font-bold text-charcoal-950">
-              Welcome, {user?.name}
-            </h2>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-charcoal-600">
-              Oversee the entire platform, manage users, and monitor system-wide
-              activity and performance.
-            </p>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl bg-surface-mist px-5 py-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-charcoal-500">
-                  Email
-                </p>
-                <p className="mt-2 text-sm font-medium text-charcoal-900">{user?.email}</p>
-              </div>
-              <div className="rounded-3xl bg-surface-mist px-5 py-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-charcoal-500">
-                  Role
-                </p>
-                <p className="mt-2 text-sm font-medium text-charcoal-900">Super Admin</p>
-              </div>
-            </div>
-          </section>
-
-          <aside className="rounded-[2rem] border border-charcoal-200/70 bg-charcoal-950 p-8 text-white shadow-[0_24px_90px_rgba(26,26,31,0.16)]">
-            <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-sage-200">
-              Quick links
+        <motion.div variants={itemVariants}>
+          <div className="rounded-2xl border border-charcoal-200/70 bg-white p-6 shadow-sm">
+            <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.2em] text-charcoal-500">
+              Quick Stats
             </p>
             <div className="mt-4 space-y-3">
-              <div className="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
-                <p className="text-sm font-medium text-white/70">Users</p>
-                <p className="mt-1 text-sm leading-6 text-white/85">
-                  Manage all users, roles, and permissions.
-                </p>
+              <div className="flex items-center gap-3 rounded-xl bg-charcoal-50/50 px-4 py-3">
+                <MdPeople className="text-lg text-charcoal-400" />
+                <span className="font-body text-sm text-charcoal-700">Users</span>
               </div>
-              <div className="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
-                <p className="text-sm font-medium text-white/70">Platform</p>
-                <p className="mt-1 text-sm leading-6 text-white/85">
-                  Monitor system health and platform analytics.
-                </p>
+              <div className="flex items-center gap-3 rounded-xl bg-charcoal-50/50 px-4 py-3">
+                <MdApartment className="text-lg text-charcoal-400" />
+                <span className="font-body text-sm text-charcoal-700">Properties</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl bg-charcoal-50/50 px-4 py-3">
+                <MdConfirmationNumber className="text-lg text-charcoal-400" />
+                <span className="font-body text-sm text-charcoal-700">Tickets</span>
               </div>
             </div>
-            <Link
-              to="/"
-              className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-white px-6 py-3 font-heading text-sm font-semibold text-charcoal-950 transition-colors hover:bg-charcoal-100"
-            >
-              Back to landing
-            </Link>
-          </aside>
-        </main>
-      </div>
+          </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
