@@ -171,7 +171,7 @@ const loginWithPassword = async ({ email, password }) => {
     throw new AppError('Account deactivated', 403, 'ACCOUNT_DEACTIVATED');
   }
 
-  if (!user.isEmailVerified) {
+  if (!user.isEmailVerified && user.role !== 'SUPER_ADMIN') {
     throw new AppError('Email not verified. Please check your inbox for the verification code.', 403, 'EMAIL_NOT_VERIFIED');
   }
 
