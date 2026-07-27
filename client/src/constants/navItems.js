@@ -13,11 +13,9 @@ import {
   MdBuild,
   MdAssignment,
   MdSchedule,
-  MdAdminPanelSettings,
   MdPeople,
   MdSupervisorAccount,
   MdInsights,
-  MdSecurity,
 } from 'react-icons/md';
 
 export const landlordNav = [
@@ -59,7 +57,5 @@ export const adminNav = [
   { label: 'Properties', path: '/admin/properties', icon: MdApartment },
   { label: 'Tickets', path: '/admin/tickets', icon: MdConfirmationNumber },
   { label: 'Insights', path: '/admin/insights', icon: MdInsights },
-  { label: 'Roles', path: '/admin/roles', icon: MdAdminPanelSettings },
-  { label: 'Security', path: '/admin/security', icon: MdSecurity },
   { label: 'Settings', path: '/admin/settings', icon: MdSettings },
 ];
