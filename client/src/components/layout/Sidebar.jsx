@@ -141,7 +141,7 @@ const Sidebar = ({ navItems = [], role = '' }) => {
             const linkContent = (
               <NavLink
                 to={item.path}
-                end={item.path === `/${role.toLowerCase()}`}
+                end
                 className={({ isActive }) =>
                   `group flex items-center rounded-xl px-3 py-2.5 transition-all duration-200 w-full ${
                     isActive
