@@ -38,8 +38,13 @@ import ContractorTechnicians from '@pages/dashboard/Contractor/Technicians';
 import ContractorProfile from '@pages/dashboard/Contractor/Profile';
 import ContractorAnalytics from '@pages/dashboard/Contractor/Analytics';
 import ContractorSettings from '@pages/dashboard/Contractor/Settings';
-import SuperAdminDashboard from '@pages/dashboard/SuperAdmin/Home';
-import { landlordNav, tenantNav, contractorNav, technicianNav } from '@constants/navItems';
+import SuperAdminHome from '@pages/dashboard/SuperAdmin/Home';
+import SuperAdminUsers from '@pages/dashboard/SuperAdmin/Users';
+import SuperAdminProperties from '@pages/dashboard/SuperAdmin/Properties';
+import SuperAdminTickets from '@pages/dashboard/SuperAdmin/Tickets';
+import SuperAdminInsights from '@pages/dashboard/SuperAdmin/Insights';
+import SuperAdminSettings from '@pages/dashboard/SuperAdmin/Settings';
+import { landlordNav, tenantNav, contractorNav, technicianNav, adminNav } from '@constants/navItems';
 import ProtectedRoute from './ProtectedRoute';
 import RoleGuard from './RoleGuard';
 
@@ -187,9 +192,17 @@ const router = createBrowserRouter([
             path: '/admin',
             element: (
               <RoleGuard requiredRole='SUPER_ADMIN'>
-                <SuperAdminDashboard />
+                <DashboardLayout navItems={adminNav} role='Super Admin' />
               </RoleGuard>
             ),
+            children: [
+              { index: true, element: <SuperAdminHome /> },
+              { path: 'users', element: <SuperAdminUsers /> },
+              { path: 'properties', element: <SuperAdminProperties /> },
+              { path: 'tickets', element: <SuperAdminTickets /> },
+              { path: 'insights', element: <SuperAdminInsights /> },
+              { path: 'settings', element: <SuperAdminSettings /> },
+            ],
           },
         ],
       },
