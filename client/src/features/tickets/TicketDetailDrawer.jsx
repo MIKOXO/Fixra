@@ -501,7 +501,7 @@ const TicketDetailDrawer = ({ isOpen, ticketId, onAssign, onClose, userRole, onS
                 ) : null}
               </div>
 
-              {t && !currentTicketLoading && (
+              {t && !currentTicketLoading && userRole !== 'SUPER_ADMIN' && (
                 <div className="flex items-center gap-3 border-t border-charcoal-100 px-6 py-4">
                   {t.status === 'REPORTED' && userRole !== 'CONTRACTOR' && (
                     <button
